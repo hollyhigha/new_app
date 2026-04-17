@@ -56,7 +56,7 @@
     <view class="consent-row" @click="formData.consent = !formData.consent">
       <view :class="['checkbox', formData.consent && 'checked']" />
       <text class="consent-text">
-        我同意将信息分享给合作机构用于咨询服务
+        我已阅读并同意<text class="consent-link" @click.stop="openPrivacy">《隐私政策》</text>，授权平台为我匹配专业咨询服务
       </text>
     </view>
 
@@ -152,6 +152,10 @@ function validate() {
     return false
   }
   return true
+}
+
+function openPrivacy() {
+  uni.navigateTo({ url: '/pages/webview/index?type=privacy' })
 }
 
 function handleSubmit() {
@@ -266,6 +270,9 @@ async function onCaptchaSuccess() {
 .consent-text {
   font-size: 24rpx;
   color: #666;
+}
+.consent-link {
+  color: #E91E63;
 }
 .submit-btn {
   margin-top: 40rpx;

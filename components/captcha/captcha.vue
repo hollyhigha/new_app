@@ -6,7 +6,7 @@
         <text class="captcha-close" @click="close">✕</text>
       </view>
       <view class="captcha-body">
-        <view class="slider-track" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd">
+        <view class="slider-track" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd" @mousedown="onMouseDown">
           <view class="slider-bg" :style="{ width: sliderLeft + 'rpx' }" />
           <view class="slider-thumb" :style="{ left: sliderLeft + 'rpx' }">
             <text class="thumb-icon">→</text>
@@ -51,6 +51,10 @@ function onTouchMove(e) {
 }
 
 function onTouchEnd() {
+  checkResult()
+}
+
+function checkResult() {
   if (verified.value) return
   if (sliderLeft.value >= trackWidth - 120) {
     verified.value = true
@@ -63,6 +67,24 @@ function onTouchEnd() {
     sliderLeft.value = 0
     emit('fail')
   }
+}
+
+// 鼠标事件支持（H5/Mac 浏览器调试）
+function onMouseDown(e) {
+  if (verified.value) return
+  startX.value = e.clientX
+  const onMouseMove = (ev) => {
+    if (verified.value) return
+    const diff = (ev.clientX - startX.value) * 2
+    sliderLeft.value = Math.max(0, Math.min(trackWidth - 80, diff))
+  }
+  const onMouseUp = () => {
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+    checkResult()
+  }
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
 }
 
 defineExpose({ open, close })
