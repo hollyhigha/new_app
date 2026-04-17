@@ -78,6 +78,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import captcha from '@/components/captcha/captcha.vue'
 import { cityList, interestOptions, isValidCity } from '@/utils/city-data.js'
 
 const captchaRef = ref(null)

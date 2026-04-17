@@ -66,6 +66,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
+import privacyPopup from '@/components/privacy-popup/privacy-popup.vue'
 import {
   parseFromLaunchOptions,
   parseFromClipboard,
