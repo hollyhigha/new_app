@@ -169,8 +169,10 @@ function getCategoryLabel(value) {
 }
 
 function goCategory(category) {
-  // Navigate to home page with category filter
-  uni.switchTab({ url: '/pages/index/index' })
+  const first = articleList.find(a => a.category === category)
+  if (first) {
+    uni.navigateTo({ url: `/pages/article/detail?id=${first._id}` })
+  }
 }
 
 function goQADetail(qa) {
@@ -234,15 +236,17 @@ function goForm() {
 .wiki-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 20rpx;
+  justify-content: space-between;
 }
 .wiki-card {
-  width: calc(50% - 10rpx);
+  width: 48.5%;
   background-color: #fff;
   border-radius: 16rpx;
   padding: 28rpx;
+  margin-bottom: 20rpx;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 .wiki-emoji {
   font-size: 48rpx;

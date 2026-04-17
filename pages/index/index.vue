@@ -84,6 +84,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { onPullDownRefresh } from '@dcloudio/uni-app'
 import privacyPopup from '@/components/privacy-popup/privacy-popup.vue'
 import floatConsult from '@/components/float-consult/float-consult.vue'
 import {
@@ -151,6 +152,11 @@ function loadArticles(reset = false) {
   hasMore.value = result.hasMore
   page.value++
 }
+
+onPullDownRefresh(() => {
+  loadArticles(true)
+  uni.stopPullDownRefresh()
+})
 
 function switchCategory(value) {
   currentCategory.value = value
