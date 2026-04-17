@@ -26,12 +26,6 @@ onLaunch(async (options) => {
     return
   }
 
-  // 2. 隐私同意后，首次启动显示引导页
-  const guideShown = uni.getStorageSync('guide_shown')
-  if (!guideShown) {
-    uni.reLaunch({ url: '/pages/guide/index' })
-    return
-  }
 
   // 2. 获取 click_id（隐私同意后才执行）
   await handleClickId(options)

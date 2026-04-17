@@ -95,12 +95,16 @@
         </view>
       </view>
     </uni-popup>
+
+    <!-- 悬浮咨询按钮 -->
+    <float-consult />
   </view>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
+import floatConsult from '@/components/float-consult/float-consult.vue'
 
 const leadsPopupRef = ref(null)
 

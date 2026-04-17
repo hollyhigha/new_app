@@ -78,15 +78,14 @@
     </view>
 
     <!-- 悬浮咨询按钮 -->
-    <view class="float-btn" @click="goForm">
-      <text class="float-btn-text">免费咨询</text>
-    </view>
+    <float-consult />
   </view>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import privacyPopup from '@/components/privacy-popup/privacy-popup.vue'
+import floatConsult from '@/components/float-consult/float-consult.vue'
 import {
   parseFromLaunchOptions,
   parseFromClipboard,
@@ -170,10 +169,6 @@ function goDetail(id) {
   uni.navigateTo({ url: `/pages/article/detail?id=${id}` })
 }
 
-function goForm() {
-  uni.navigateTo({ url: '/pages/form/index' })
-}
-
 function goSearch() {
   uni.navigateTo({ url: '/pages/search/index' })
 }
@@ -186,11 +181,6 @@ async function onPrivacyAgree() {
   if (result.clickId) {
     saveClickId(result)
     syncClickIdToCloud(result)
-  }
-  // 隐私同意后，如果还没看过引导页，跳转引导页
-  const guideShown = uni.getStorageSync('guide_shown')
-  if (!guideShown) {
-    uni.reLaunch({ url: '/pages/guide/index' })
   }
 }
 
@@ -416,20 +406,4 @@ function onPrivacyDisagree() {
   font-size: 24rpx;
 }
 
-/* Float button */
-.float-btn {
-  position: fixed;
-  bottom: 140rpx;
-  right: 30rpx;
-  background-color: #E91E63;
-  border-radius: 60rpx;
-  padding: 20rpx 40rpx;
-  box-shadow: 0 4rpx 16rpx rgba(233, 30, 99, 0.4);
-  z-index: 100;
-}
-.float-btn-text {
-  color: #fff;
-  font-size: 28rpx;
-  font-weight: bold;
-}
 </style>

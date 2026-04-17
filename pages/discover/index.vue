@@ -101,11 +101,15 @@
         <text class="consult-banner-btn">立即咨询</text>
       </view>
     </view>
+
+    <!-- 悬浮咨询按钮 -->
+    <float-consult />
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import floatConsult from '@/components/float-consult/float-consult.vue'
 import { qaList, tipsList, caseList, articleList } from '@/utils/mock-data.js'
 
 const tabs = [

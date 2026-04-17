@@ -6,14 +6,17 @@ const leadsCollection = db.collection('leads')
 const clientsCollection = db.collection('clients')
 
 exports.main = async (event, context) => {
-  // 1. Token 校验（必须登录态）
-  // uniCloud 阿里云版通过 uniIdToken 验证用户身份
-  const uniID = require('uni-id')
-  const payload = await uniID.checkToken(event.uniIdToken)
-  if (payload.code) {
-    return { code: 401, msg: '请先登录' }
+  // 1. Token 校验（可选，未登录也可提交）
+  let userId = ''
+  try {
+    const uniID = require('uni-id')
+    const payload = await uniID.checkToken(event.uniIdToken)
+    if (!payload.code) {
+      userId = payload.uid
+    }
+  } catch (e) {
+    // 未登录，继续
   }
-  const userId = payload.uid
 
   const { name, phone, city, interest, click_id, client_id, consent_time } = event
 
@@ -45,12 +48,14 @@ exports.main = async (event, context) => {
   const oneDayAgo = now - 24 * 60 * 60 * 1000
   const oneHourAgo = now - 60 * 60 * 1000
 
-  // 3a. 同一 user_id 24 小时内最多 3 次
-  const userCount = await leadsCollection
-    .where({ user_id: userId, create_time: dbCmd.gte(oneDayAgo) })
-    .count()
-  if (userCount.result.total >= 3) {
-    return { code: 429, msg: '提交过于频繁，请明天再试' }
+  // 3a. 同一 user_id 24 小时内最多 3 次（仅登录用户）
+  if (userId) {
+    const userCount = await leadsCollection
+      .where({ user_id: userId, create_time: dbCmd.gte(oneDayAgo) })
+      .count()
+    if (userCount.result.total >= 3) {
+      return { code: 429, msg: '提交过于频繁，请明天再试' }
+    }
   }
 
   // 3b. 同一 phone 全局最多 5 条有效线索

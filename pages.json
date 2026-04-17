@@ -80,13 +80,6 @@
       }
     },
     {
-      "path": "pages/guide/index",
-      "style": {
-        "navigationBarTitleText": "",
-        "navigationStyle": "custom"
-      }
-    },
-    {
       "path": "pages/webview/index",
       "style": {
         "navigationBarTitleText": ""
@@ -152,9 +145,7 @@
   },
   "uniIdRouter": {
     "loginPage": "uni_modules/uni-id-pages/pages/login/login-withoutpwd",
-    "needLogin": [
-      "pages/form/index"
-    ],
+    "needLogin": [],
     "priority": 99
   }
 }

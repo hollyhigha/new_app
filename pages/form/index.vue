@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import captcha from '@/components/captcha/captcha.vue'
 import { cityList, interestOptions, isValidCity } from '@/utils/city-data.js'
 
@@ -92,6 +92,30 @@ const formData = reactive({
 })
 
 const submitting = ref(false)
+const isLoggedIn = ref(false)
+
+onMounted(() => {
+  // 如果已登录，自动填充手机号
+  try {
+    const userInfo = uniCloud.getCurrentUserInfo()
+    if (userInfo && userInfo.uid) {
+      isLoggedIn.value = true
+      const db = uniCloud.database()
+      db.collection('uni-id-users').doc(userInfo.uid)
+        .field('mobile')
+        .get()
+        .then(res => {
+          const mobile = res.result.data[0]?.mobile
+          if (mobile) {
+            formData.phone = mobile
+          }
+        })
+        .catch(() => {})
+    }
+  } catch (e) {
+    // 未登录，忽略
+  }
+})
 
 function onCityChange(e) {
   formData.city = cityList[e.detail.value]
