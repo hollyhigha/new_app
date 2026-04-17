@@ -44,6 +44,11 @@
           </view>
         </view>
       </view>
+
+      <view class="consult-banner" @click="goForm">
+        <text class="consult-banner-text">还有疑问？专业医师在线解答</text>
+        <text class="consult-banner-btn">免费咨询</text>
+      </view>
     </view>
 
     <!-- 美丽贴士 -->
@@ -56,6 +61,11 @@
           <text class="tip-title">{{ tip.title }}</text>
           <text class="tip-text">{{ tip.content }}</text>
         </view>
+      </view>
+
+      <view class="consult-banner" @click="goForm">
+        <text class="consult-banner-text">想获取个性化护肤建议？</text>
+        <text class="consult-banner-btn">免费咨询</text>
       </view>
     </view>
 

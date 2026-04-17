@@ -10,7 +10,12 @@ export const cityList = [
 
 export const interestOptions = [
   { label: '双眼皮', value: 'double_eyelid' },
-  { label: '皮肤管理', value: 'skin_care' }
+  { label: '皮肤管理', value: 'skin_care' },
+  { label: '鼻部整形', value: 'nose' },
+  { label: '面部轮廓', value: 'face' },
+  { label: '口腔美容', value: 'dental' },
+  { label: '形体塑造', value: 'body' },
+  { label: '抗衰老', value: 'anti_aging' }
 ]
 
 /**

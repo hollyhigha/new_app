@@ -187,6 +187,11 @@ async function onPrivacyAgree() {
     saveClickId(result)
     syncClickIdToCloud(result)
   }
+  // 隐私同意后，如果还没看过引导页，跳转引导页
+  const guideShown = uni.getStorageSync('guide_shown')
+  if (!guideShown) {
+    uni.reLaunch({ url: '/pages/guide/index' })
+  }
 }
 
 function onPrivacyDisagree() {

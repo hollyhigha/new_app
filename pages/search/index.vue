@@ -37,7 +37,10 @@
       </view>
       <view v-if="results.length === 0" class="empty">
         <text class="empty-text">未找到相关内容</text>
-        <text class="empty-hint">换个关键词试试吧</text>
+        <text class="empty-hint">换个关键词试试，或直接咨询专业医师</text>
+        <view class="empty-btn" @click="goForm">
+          <text class="empty-btn-text">免费咨询</text>
+        </view>
       </view>
     </view>
   </view>
@@ -64,6 +67,10 @@ function quickSearch(tag) {
 
 function goDetail(id) {
   uni.navigateTo({ url: `/pages/article/detail?id=${id}` })
+}
+
+function goForm() {
+  uni.navigateTo({ url: '/pages/form/index' })
 }
 </script>
 
@@ -172,5 +179,16 @@ function goDetail(id) {
   color: #ccc;
   margin-top: 10rpx;
   display: block;
+}
+.empty-btn {
+  margin-top: 30rpx;
+  background-color: #E91E63;
+  padding: 16rpx 48rpx;
+  border-radius: 36rpx;
+}
+.empty-btn-text {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
 }
 </style>

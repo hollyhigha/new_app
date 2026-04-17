@@ -80,6 +80,13 @@
       }
     },
     {
+      "path": "pages/guide/index",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/webview/index",
       "style": {
         "navigationBarTitleText": ""

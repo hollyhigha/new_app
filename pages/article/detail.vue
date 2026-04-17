@@ -9,6 +9,15 @@
       </view>
       <rich-text class="article-body" :nodes="article.content" />
 
+      <!-- 文中咨询引导卡片 -->
+      <view class="inline-cta" @click="goForm">
+        <view class="cta-left">
+          <text class="cta-title">想了解更多？</text>
+          <text class="cta-desc">提交咨询，专业医师1对1解答</text>
+        </view>
+        <text class="cta-btn">免费咨询</text>
+      </view>
+
       <!-- 相关推荐 -->
       <view v-if="relatedList.length > 0" class="related-section">
         <text class="related-title">相关推荐</text>
@@ -192,6 +201,39 @@ function goDetail(id) {
   font-size: 30rpx;
   color: #333;
   line-height: 1.8;
+}
+
+/* Inline CTA */
+.inline-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40rpx;
+  padding: 28rpx;
+  background: linear-gradient(135deg, #FCE4EC, #F8BBD0);
+  border-radius: 16rpx;
+}
+.cta-left { flex: 1; }
+.cta-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #C2185B;
+  display: block;
+}
+.cta-desc {
+  font-size: 24rpx;
+  color: #E91E63;
+  margin-top: 6rpx;
+  display: block;
+}
+.cta-btn {
+  background-color: #E91E63;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: bold;
+  padding: 14rpx 32rpx;
+  border-radius: 30rpx;
+  flex-shrink: 0;
 }
 
 /* Related */

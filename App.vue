@@ -19,11 +19,17 @@ onLaunch(async (options) => {
     onLoginSuccess({ isNewUser: true })
   })
 
-  // 1. 检查隐私政策是否已同意
+  // 1. 隐私政策必须最先弹出（合规要求）
   const privacyAgreed = uni.getStorageSync('privacy_agreed')
   if (!privacyAgreed) {
-    // 等待页面加载后显示弹窗（在首页中触发）
     uni.setStorageSync('need_privacy_popup', true)
+    return
+  }
+
+  // 2. 隐私同意后，首次启动显示引导页
+  const guideShown = uni.getStorageSync('guide_shown')
+  if (!guideShown) {
+    uni.reLaunch({ url: '/pages/guide/index' })
     return
   }
 
