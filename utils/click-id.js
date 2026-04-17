@@ -127,3 +127,49 @@ export async function syncClickIdToCloud({ clickId, clientId, source }) {
     console.error('syncClickIdToCloud failed:', e)
   }
 }
+
+/**
+ * 回传 App 激活事件到巨量引擎
+ * 调用时机：用户同意隐私协议后（首次启动），在 App.vue onPrivacyAgree 中调用
+ * 巨量引擎要求：App 安装激活须在用户授权后才能回传
+ */
+export async function reportAppInstall({ clickId, clientId }) {
+  if (!clickId) return
+  // 避免重复回传：本地标记是否已上报激活
+  const reported = uni.getStorageSync('app_install_reported')
+  if (reported) return
+  try {
+    await uniCloud.callFunction({
+      name: 'report-conversion',
+      data: {
+        event_type: 'app_install',
+        click_id: clickId,
+        client_id: clientId || ''
+      }
+    })
+    uni.setStorageSync('app_install_reported', '1')
+  } catch (e) {
+    console.error('reportAppInstall failed:', e)
+  }
+}
+
+/**
+ * 回传表单提交事件到巨量引擎
+ * 调用时机：submit-lead 云函数已在服务端自动触发，
+ * 此函数供前端在云函数不可用时作为兜底调用
+ */
+export async function reportFormSubmit({ clickId, clientId }) {
+  if (!clickId) return
+  try {
+    await uniCloud.callFunction({
+      name: 'report-conversion',
+      data: {
+        event_type: 'form_submit',
+        click_id: clickId,
+        client_id: clientId || ''
+      }
+    })
+  } catch (e) {
+    console.error('reportFormSubmit failed:', e)
+  }
+}

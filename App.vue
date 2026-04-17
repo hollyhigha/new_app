@@ -5,7 +5,8 @@ import {
   parseFromLaunchOptions,
   parseFromClipboard,
   saveClickId,
-  syncClickIdToCloud
+  syncClickIdToCloud,
+  reportAppInstall
 } from './utils/click-id.js'
 import { onLoginSuccess } from './utils/login-hook.js'
 
@@ -52,6 +53,8 @@ async function handleClickId(options) {
     saveClickId(result)
     // 异步同步到云端（不阻塞主流程）
     syncClickIdToCloud(result)
+    // 回传 App 激活事件到巨量引擎（仅首次，内部有幂等保护）
+    reportAppInstall({ clickId: result.clickId, clientId: result.clientId })
   }
 }
 
