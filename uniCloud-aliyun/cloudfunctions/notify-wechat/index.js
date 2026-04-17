@@ -12,7 +12,12 @@ exports.main = async (event) => {
 
   const interestMap = {
     double_eyelid: '双眼皮',
-    skin_care: '皮肤管理'
+    skin_care: '皮肤管理',
+    nose: '鼻部整形',
+    face: '面部轮廓',
+    dental: '口腔美容',
+    body: '形体塑造',
+    anti_aging: '抗衰老'
   }
   const interestText = (interest || []).map(i => interestMap[i] || i).join('、')
   const timeStr = formatTime(create_time || Date.now())

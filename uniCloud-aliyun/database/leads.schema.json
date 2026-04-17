@@ -1,9 +1,9 @@
 {
   "bsonType": "object",
-  "required": ["user_id", "name", "phone", "city", "interest", "client_id", "consent_time"],
+  "required": ["name", "phone", "city", "interest", "consent_time"],
   "permission": {
     "read": "doc.user_id == auth.uid || 'READ_LEADS' in auth.permission",
-    "create": "auth.uid != null",
+    "create": true,
     "update": "'UPDATE_LEADS' in auth.permission",
     "delete": "'DELETE_LEADS' in auth.permission"
   },
@@ -39,7 +39,7 @@
       "description": "感兴趣内容",
       "items": {
         "bsonType": "string",
-        "enum": ["double_eyelid", "skin_care"]
+        "enum": ["double_eyelid", "skin_care", "nose", "face", "dental", "body", "anti_aging"]
       }
     },
     "click_id": {

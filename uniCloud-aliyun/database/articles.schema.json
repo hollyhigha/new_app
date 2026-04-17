@@ -25,7 +25,7 @@
     "category": {
       "bsonType": "string",
       "description": "分类",
-      "enum": ["double_eyelid", "skin_care"]
+      "enum": ["double_eyelid", "skin_care", "nose", "face", "dental", "body", "anti_aging"]
     },
     "cover_image": {
       "bsonType": "string",
