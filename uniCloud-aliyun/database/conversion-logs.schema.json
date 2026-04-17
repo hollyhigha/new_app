@@ -1,0 +1,59 @@
+{
+  "bsonType": "object",
+  "required": ["click_id", "event_type"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": { "description": "自动生成" },
+    "user_id": {
+      "bsonType": "string",
+      "description": "关联用户ID"
+    },
+    "click_id": {
+      "bsonType": "string",
+      "description": "巨量引擎 click_id"
+    },
+    "event_type": {
+      "bsonType": "string",
+      "description": "事件类型",
+      "enum": ["register", "form_submit"]
+    },
+    "request_body": {
+      "bsonType": "object",
+      "description": "请求体"
+    },
+    "response_code": {
+      "bsonType": "int",
+      "description": "响应状态码"
+    },
+    "response_body": {
+      "bsonType": "object",
+      "description": "响应体"
+    },
+    "success": {
+      "bsonType": "bool",
+      "description": "是否成功",
+      "defaultValue": false
+    },
+    "retry_count": {
+      "bsonType": "int",
+      "description": "重试次数",
+      "defaultValue": 0
+    },
+    "next_retry_time": {
+      "bsonType": "timestamp",
+      "description": "下次重试时间"
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "bsonType": "object",
+  "required": ["client_id", "client_name"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": { "description": "自动生成" },
+    "client_id": {
+      "bsonType": "string",
+      "description": "客户唯一标识"
+    },
+    "client_name": {
+      "bsonType": "string",
+      "description": "客户名称"
+    },
+    "contact_person": {
+      "bsonType": "string",
+      "description": "联系人"
+    },
+    "contact_phone": {
+      "bsonType": "string",
+      "description": "联系电话"
+    },
+    "webhook_url": {
+      "bsonType": "string",
+      "description": "企微群机器人 Webhook URL（加密存储）"
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态：1启用 0停用",
+      "defaultValue": 1,
+      "enum": [0, 1]
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "bsonType": "object",
+  "required": ["title", "content", "category"],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": { "description": "自动生成" },
+    "title": {
+      "bsonType": "string",
+      "description": "文章标题",
+      "trim": "both"
+    },
+    "summary": {
+      "bsonType": "string",
+      "description": "文章摘要"
+    },
+    "content": {
+      "bsonType": "string",
+      "description": "文章正文（富文本）"
+    },
+    "category": {
+      "bsonType": "string",
+      "description": "分类",
+      "enum": ["double_eyelid", "skin_care"]
+    },
+    "cover_image": {
+      "bsonType": "string",
+      "description": "封面图 URL"
+    },
+    "sort_order": {
+      "bsonType": "int",
+      "description": "排序权重",
+      "defaultValue": 0
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态：1上架 0下架",
+      "defaultValue": 1,
+      "enum": [0, 1]
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

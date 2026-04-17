@@ -1,0 +1,46 @@
+{
+  "bsonType": "object",
+  "required": ["phone", "code"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": { "description": "自动生成" },
+    "phone": {
+      "bsonType": "string",
+      "description": "手机号"
+    },
+    "code": {
+      "bsonType": "string",
+      "description": "验证码"
+    },
+    "ip": {
+      "bsonType": "string",
+      "description": "发送请求IP"
+    },
+    "used": {
+      "bsonType": "bool",
+      "description": "是否已使用",
+      "defaultValue": false
+    },
+    "verify_count": {
+      "bsonType": "int",
+      "description": "验证尝试次数",
+      "defaultValue": 0
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "expire_time": {
+      "bsonType": "timestamp",
+      "description": "过期时间"
+    }
+  }
+}

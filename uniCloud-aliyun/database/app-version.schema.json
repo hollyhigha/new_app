@@ -1,0 +1,52 @@
+{
+  "bsonType": "object",
+  "required": ["platform", "version", "version_code"],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": { "description": "自动生成" },
+    "platform": {
+      "bsonType": "string",
+      "description": "平台",
+      "enum": ["android", "ios", "harmony"]
+    },
+    "version": {
+      "bsonType": "string",
+      "description": "版本号（如 1.0.1）"
+    },
+    "version_code": {
+      "bsonType": "int",
+      "description": "版本数字（如 101）"
+    },
+    "update_type": {
+      "bsonType": "string",
+      "description": "更新类型",
+      "enum": ["force", "optional"]
+    },
+    "download_url": {
+      "bsonType": "string",
+      "description": "wgt 包下载地址"
+    },
+    "release_note": {
+      "bsonType": "string",
+      "description": "更新说明"
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态：1启用 0停用",
+      "defaultValue": 1,
+      "enum": [0, 1]
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

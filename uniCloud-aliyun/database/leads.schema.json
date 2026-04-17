@@ -1,0 +1,101 @@
+{
+  "bsonType": "object",
+  "required": ["user_id", "name", "phone", "city", "interest", "client_id", "consent_time"],
+  "permission": {
+    "read": "doc.user_id == auth.uid || 'READ_LEADS' in auth.permission",
+    "create": "auth.uid != null",
+    "update": "'UPDATE_LEADS' in auth.permission",
+    "delete": "'DELETE_LEADS' in auth.permission"
+  },
+  "properties": {
+    "_id": { "description": "线索ID" },
+    "user_id": {
+      "bsonType": "string",
+      "description": "关联用户ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "user_mobile": {
+      "bsonType": "string",
+      "description": "用户注册手机号（冗余）"
+    },
+    "name": {
+      "bsonType": "string",
+      "description": "姓名",
+      "minLength": 2,
+      "maxLength": 20,
+      "trim": "both"
+    },
+    "phone": {
+      "bsonType": "string",
+      "description": "联系电话",
+      "pattern": "^1[3-9]\\d{9}$"
+    },
+    "city": {
+      "bsonType": "string",
+      "description": "城市"
+    },
+    "interest": {
+      "bsonType": "array",
+      "description": "感兴趣内容",
+      "items": {
+        "bsonType": "string",
+        "enum": ["double_eyelid", "skin_care"]
+      }
+    },
+    "click_id": {
+      "bsonType": "string",
+      "description": "巨量引擎 click_id"
+    },
+    "client_id": {
+      "bsonType": "string",
+      "description": "客户标识"
+    },
+    "client_name": {
+      "bsonType": "string",
+      "description": "客户名称（冗余）"
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态：0待跟进 1已联系 2已转化 3无效",
+      "defaultValue": 0,
+      "enum": [0, 1, 2, 3]
+    },
+    "source": {
+      "bsonType": "string",
+      "description": "来源",
+      "defaultValue": "oceanengine"
+    },
+    "submit_ip": {
+      "bsonType": "string",
+      "description": "提交请求IP"
+    },
+    "consent_time": {
+      "bsonType": "timestamp",
+      "description": "授权同意时间"
+    },
+    "consent_version": {
+      "bsonType": "string",
+      "description": "授权协议版本",
+      "defaultValue": "v1.0"
+    },
+    "follow_note": {
+      "bsonType": "string",
+      "description": "跟进备注",
+      "defaultValue": ""
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "update_time": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

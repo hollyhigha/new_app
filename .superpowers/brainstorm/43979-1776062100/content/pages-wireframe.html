@@ -1,0 +1,191 @@
+<h2>医美靓人 — 页面原型</h2>
+<p class="subtitle">4 个核心页面的线框图，点击选择你觉得需要调整的页面</p>
+
+<div class="cards" data-multiselect>
+  <!-- 注册/登录页 -->
+  <div class="card" data-choice="register" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#1a1a2e;border-radius:12px;padding:20px;min-height:360px;display:flex;flex-direction:column;align-items:center;color:white;font-family:system-ui;">
+        <!-- Status bar -->
+        <div style="width:100%;display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:30px;">
+          <span>9:41</span>
+          <span>4G 100%</span>
+        </div>
+        <!-- Logo area -->
+        <div style="width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#e91e63,#ff6090);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;">靓</div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px;">医美靓人</div>
+        <div style="font-size:12px;color:#888;margin-bottom:30px;">发现更美的自己</div>
+        <!-- Phone input -->
+        <div style="width:85%;background:#2a2a3e;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:13px;color:#aaa;">+86</span>
+          <span style="font-size:13px;color:#555;">请输入手机号</span>
+        </div>
+        <!-- SMS code input -->
+        <div style="width:85%;display:flex;gap:8px;margin-bottom:20px;">
+          <div style="flex:1;background:#2a2a3e;border-radius:8px;padding:12px 14px;">
+            <span style="font-size:13px;color:#555;">验证码</span>
+          </div>
+          <div style="background:#e91e63;border-radius:8px;padding:12px 14px;white-space:nowrap;">
+            <span style="font-size:13px;color:white;">获取验证码</span>
+          </div>
+        </div>
+        <!-- Login button -->
+        <div style="width:85%;background:linear-gradient(135deg,#e91e63,#ff6090);border-radius:24px;padding:12px;text-align:center;font-size:15px;font-weight:600;">
+          注册 / 登录
+        </div>
+        <!-- Agreement -->
+        <div style="margin-top:12px;font-size:10px;color:#666;">
+          登录即同意《用户协议》和《隐私政策》
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>1. 注册/登录页</h3>
+      <p>手机号 + 短信验证码<br>使用 uni-id-pages 预置组件</p>
+    </div>
+  </div>
+
+  <!-- 首页 -->
+  <div class="card" data-choice="homepage" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#1a1a2e;border-radius:12px;padding:20px;min-height:360px;color:white;font-family:system-ui;">
+        <!-- Status bar -->
+        <div style="width:100%;display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:16px;">
+          <span>9:41</span>
+          <span>4G 100%</span>
+        </div>
+        <!-- Header -->
+        <div style="font-size:18px;font-weight:600;margin-bottom:16px;">医美靓人</div>
+        <!-- Banner -->
+        <div style="width:100%;height:80px;background:linear-gradient(135deg,#e91e63,#9c27b0);border-radius:10px;display:flex;align-items:center;padding:0 16px;margin-bottom:16px;">
+          <div>
+            <div style="font-size:15px;font-weight:600;">变美从这里开始</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:4px;">专业医美 · 安全放心</div>
+          </div>
+        </div>
+        <!-- Category tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <div style="background:#e91e63;border-radius:16px;padding:6px 14px;font-size:12px;">双眼皮</div>
+          <div style="background:#2a2a3e;border-radius:16px;padding:6px 14px;font-size:12px;color:#aaa;">皮肤管理</div>
+        </div>
+        <!-- Case cards -->
+        <div style="background:#2a2a3e;border-radius:10px;padding:12px;margin-bottom:10px;">
+          <div style="display:flex;gap:10px;">
+            <div style="width:60px;height:60px;background:#3a3a4e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#666;">案例图</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">自然双眼皮案例分享</div>
+              <div style="font-size:11px;color:#888;margin-top:4px;">术后30天恢复效果展示...</div>
+              <div style="font-size:10px;color:#e91e63;margin-top:6px;">查看详情 ▸</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:#2a2a3e;border-radius:10px;padding:12px;">
+          <div style="display:flex;gap:10px;">
+            <div style="width:60px;height:60px;background:#3a3a4e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#666;">案例图</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">光子嫩肤体验分享</div>
+              <div style="font-size:11px;color:#888;margin-top:4px;">三次治疗后的肤质变化...</div>
+              <div style="font-size:10px;color:#e91e63;margin-top:6px;">查看详情 ▸</div>
+            </div>
+          </div>
+        </div>
+        <!-- CTA button -->
+        <div style="margin-top:14px;background:linear-gradient(135deg,#e91e63,#ff6090);border-radius:24px;padding:10px;text-align:center;font-size:14px;font-weight:600;">
+          立即咨询 →
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>2. 首页（案例展示）</h3>
+      <p>Banner + 分类标签 + 案例列表<br>底部悬浮"立即咨询"按钮</p>
+    </div>
+  </div>
+
+  <!-- 表单页 -->
+  <div class="card" data-choice="form" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#1a1a2e;border-radius:12px;padding:20px;min-height:360px;color:white;font-family:system-ui;">
+        <!-- Status bar -->
+        <div style="width:100%;display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:16px;">
+          <span>9:41</span>
+          <span>4G 100%</span>
+        </div>
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+          <span style="color:#888;">← </span>
+          <span style="font-size:16px;font-weight:600;">预约咨询</span>
+        </div>
+        <!-- Form -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;color:#aaa;margin-bottom:6px;">您的姓名</div>
+          <div style="background:#2a2a3e;border-radius:8px;padding:12px 14px;">
+            <span style="font-size:13px;color:#555;">请输入姓名</span>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;color:#aaa;margin-bottom:6px;">联系方式</div>
+          <div style="background:#2a2a3e;border-radius:8px;padding:12px 14px;">
+            <span style="font-size:13px;color:#555;">请输入手机号</span>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;color:#aaa;margin-bottom:6px;">所在城市</div>
+          <div style="background:#2a2a3e;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;">
+            <span style="font-size:13px;color:#555;">请选择城市</span>
+            <span style="color:#555;">▾</span>
+          </div>
+        </div>
+        <div style="margin-bottom:20px;">
+          <div style="font-size:12px;color:#aaa;margin-bottom:6px;">感兴趣的项目</div>
+          <div style="display:flex;gap:8px;">
+            <div style="background:#e91e63;border-radius:16px;padding:6px 14px;font-size:12px;">双眼皮</div>
+            <div style="background:#2a2a3e;border-radius:16px;padding:6px 14px;font-size:12px;color:#aaa;">皮肤管理</div>
+          </div>
+        </div>
+        <!-- Submit -->
+        <div style="background:linear-gradient(135deg,#e91e63,#ff6090);border-radius:24px;padding:12px;text-align:center;font-size:15px;font-weight:600;">
+          提交咨询
+        </div>
+        <div style="text-align:center;margin-top:10px;font-size:10px;color:#666;">
+          提交后我们将在24小时内联系您
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>3. 线索表单页</h3>
+      <p>姓名 + 联系方式 + 城市 + 感兴趣项目<br>提交后触发企微通知</p>
+    </div>
+  </div>
+
+  <!-- 提交成功页 -->
+  <div class="card" data-choice="success" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#1a1a2e;border-radius:12px;padding:20px;min-height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:system-ui;">
+        <!-- Status bar -->
+        <div style="width:100%;display:flex;justify-content:space-between;font-size:11px;color:#888;position:absolute;top:20px;left:20px;right:20px;">
+          <span>9:41</span>
+          <span>4G 100%</span>
+        </div>
+        <!-- Success icon -->
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#4caf50,#66bb6a);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px;">
+          ✓
+        </div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:8px;">提交成功</div>
+        <div style="font-size:13px;color:#888;text-align:center;line-height:1.6;margin-bottom:24px;">
+          感谢您的咨询<br>我们的专业顾问将在24小时内<br>与您取得联系
+        </div>
+        <div style="background:#2a2a3e;border-radius:24px;padding:10px 24px;font-size:13px;color:#e91e63;">
+          返回首页
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>4. 提交成功页</h3>
+      <p>成功提示 + 返回首页按钮<br>给用户一个明确的预期</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px;padding:16px;background:rgba(233,30,99,0.1);border-radius:8px;border-left:3px solid #e91e63;">
+  <p style="margin:0;font-size:14px;color:#ccc;">点击选择你觉得<strong>需要调整</strong>的页面，或者在终端告诉我你的想法。如果都满意，直接在终端回复即可。</p>
+</div>
