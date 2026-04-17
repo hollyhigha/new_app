@@ -7,11 +7,17 @@ import {
   saveClickId,
   syncClickIdToCloud
 } from './utils/click-id.js'
+import { onLoginSuccess } from './utils/login-hook.js'
 
 const privacyPopupRef = ref(null)
 
 onLaunch(async (options) => {
   console.log('App Launch', options)
+
+  // 监听 uni-id-pages 登录成功事件，触发转化回传
+  uni.$on('uni-id-pages-login-success', () => {
+    onLoginSuccess({ isNewUser: true })
+  })
 
   // 1. 检查隐私政策是否已同意
   const privacyAgreed = uni.getStorageSync('privacy_agreed')

@@ -7,35 +7,12 @@ export default {
 	*/
   isAdmin: false, // 区分管理端与用户端
   loginTypes: [
-    // "qq",
-    // "xiaomi",
-    // "sinaweibo",
-    // "taobao",
-    // "facebook",
-    // "google",
-    // "alipay",
-    // "douyin",
-
-    // #ifdef APP
-    'univerify',
-    // #endif
-    // #ifndef MP-HARMONY
-    'weixin',
-    // #endif
-    'username',
-    // #ifdef APP
-    'apple',
-    // #endif
-    'smsCode',
-    // #ifdef APP-HARMONY || MP-HARMONY
-    'huawei',
-    'huaweiMobile'
-    // #endif
+    'smsCode'
   ],
   // 政策协议
   agreements: {
-    serviceUrl: 'https://xxx', // 用户服务协议链接
-    privacyUrl: 'https://xxx', // 隐私政策条款链接
+    serviceUrl: '/pages/webview/index?url=https://liangren.example.com/agreement.html', // 用户服务协议链接
+    privacyUrl: '/pages/webview/index?url=https://liangren.example.com/privacy.html', // 隐私政策条款链接
     huaweiConsumerPrivacyUrl: 'https://privacy.consumer.huawei.com/legal/id/authentication-terms.htm?code=CN&language=zh-CN', // 华为账号用户认证协议
     // 哪些场景下显示，1.注册（包括登录并注册，如：微信登录、苹果登录、短信验证码登录）、2.登录（如：用户名密码登录）
     scope: [
@@ -59,7 +36,7 @@ export default {
 	 * weak（弱：密码必须包含字母和数字，长度范围：6-16位之间）
 	 * 为空或false则不验证密码强度
 	 */
-  passwordStrength: 'medium',
+  passwordStrength: false,
   /**
 	 * 登录后允许用户设置密码（只针对未设置密码得用户）
 	 * 开启此功能将 setPasswordAfterLogin 设置为 true 即可
