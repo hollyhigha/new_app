@@ -1,58 +1,79 @@
 <template>
   <view class="page-index">
-    <!-- 隐私弹窗（首次启动） -->
-    <privacy-popup
-      ref="privacyPopupRef"
-      @agree="onPrivacyAgree"
-      @disagree="onPrivacyDisagree"
-    />
+    <!-- 隐私弹窗 -->
+    <privacy-popup ref="privacyPopupRef" @agree="onPrivacyAgree" @disagree="onPrivacyDisagree" />
 
-    <!-- 顶部标题 -->
-    <view class="header">
-      <text class="header-title">靓人科普</text>
+    <!-- 搜索栏 -->
+    <view class="search-bar" @click="goSearch">
+      <view class="search-inner">
+        <text class="search-icon">&#x1F50D;</text>
+        <text class="search-placeholder">搜索医美科普知识...</text>
+      </view>
     </view>
 
-    <!-- 分类标签 -->
-    <scroll-view scroll-x class="category-bar">
-      <view
-        v-for="cat in categories"
-        :key="cat.value"
-        :class="['category-item', currentCategory === cat.value && 'active']"
-        @click="switchCategory(cat.value)"
-      >
-        {{ cat.label }}
+    <!-- Banner轮播 -->
+    <swiper class="banner-swiper" autoplay circular indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff">
+      <swiper-item v-for="banner in bannerList" :key="banner.id" @click="onBannerClick(banner)">
+        <image class="banner-image" :src="banner.image" mode="aspectFill" />
+        <view class="banner-title-bar">
+          <text class="banner-title">{{ banner.title }}</text>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <!-- 分类导航 -->
+    <view class="category-grid">
+      <view v-for="cat in displayCategories" :key="cat.value" class="category-grid-item" @click="switchCategory(cat.value)">
+        <view :class="['category-icon-wrap', currentCategory === cat.value && 'active']">
+          <text class="category-icon-text">{{ cat.emoji }}</text>
+        </view>
+        <text :class="['category-name', currentCategory === cat.value && 'active']">{{ cat.label }}</text>
       </view>
-    </scroll-view>
+    </view>
+
+    <!-- 热门推荐 -->
+    <view class="section" v-if="currentCategory === 'all'">
+      <view class="section-header">
+        <text class="section-title">热门推荐</text>
+        <text class="section-more" @click="switchCategory('all')">更多</text>
+      </view>
+      <scroll-view scroll-x class="hot-scroll">
+        <view v-for="article in hotArticles" :key="article._id" class="hot-card" @click="goDetail(article._id)">
+          <image class="hot-cover" :src="article.cover_image" mode="aspectFill" />
+          <text class="hot-title">{{ article.title }}</text>
+          <view class="hot-meta">
+            <text class="hot-author">{{ article.author }}</text>
+            <text class="hot-read">{{ formatCount(article.read_count) }}阅读</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
 
     <!-- 文章列表 -->
-    <view class="article-list">
-      <view
-        v-for="article in articleList"
-        :key="article._id"
-        class="article-card"
-        @click="goDetail(article._id)"
-      >
-        <image
-          v-if="article.cover_image"
-          class="article-cover"
-          :src="article.cover_image"
-          mode="aspectFill"
-        />
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">{{ currentCategory === 'all' ? '最新文章' : currentCategoryLabel }}</text>
+      </view>
+      <view v-for="article in displayArticles" :key="article._id" class="article-card" @click="goDetail(article._id)">
         <view class="article-info">
           <text class="article-title">{{ article.title }}</text>
           <text class="article-summary">{{ article.summary }}</text>
+          <view class="article-meta">
+            <text class="meta-author">{{ article.author }}</text>
+            <text class="meta-dot">.</text>
+            <text class="meta-read">{{ formatCount(article.read_count) }}阅读</text>
+            <text class="meta-dot">.</text>
+            <text class="meta-time">{{ formatTimeAgo(article.create_time) }}</text>
+          </view>
         </view>
+        <image class="article-cover" :src="article.cover_image" mode="aspectFill" />
       </view>
 
-      <!-- 加载状态 -->
-      <view v-if="loading" class="loading-tip">
-        <text>加载中...</text>
+      <view v-if="displayArticles.length === 0" class="empty-tip">
+        <text>暂无相关文章</text>
       </view>
-      <view v-if="!loading && articleList.length === 0" class="empty-tip">
-        <text>暂无文章</text>
-      </view>
-      <view v-if="noMore && articleList.length > 0" class="loading-tip">
-        <text>没有更多了</text>
+      <view v-if="!hasMore && displayArticles.length > 0" class="loading-tip">
+        <text>— 已经到底了 —</text>
       </view>
     </view>
 
@@ -64,8 +85,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
+import { ref, computed, onMounted } from 'vue'
 import privacyPopup from '@/components/privacy-popup/privacy-popup.vue'
 import {
   parseFromLaunchOptions,
@@ -73,37 +93,92 @@ import {
   saveClickId,
   syncClickIdToCloud
 } from '@/utils/click-id.js'
+import {
+  bannerList,
+  articleList,
+  getArticlesByCategory,
+  formatCount,
+  formatTimeAgo
+} from '@/utils/mock-data.js'
 
-const db = uniCloud.database()
+const privacyPopupRef = ref(null)
+const currentCategory = ref('all')
+const page = ref(1)
+const allDisplayed = ref([])
+const hasMore = ref(true)
 
-const categories = [
-  { label: '全部', value: 'all' },
-  { label: '双眼皮', value: 'double_eyelid' },
-  { label: '皮肤管理', value: 'skin_care' }
+const displayCategories = [
+  { value: 'all', label: '全部', emoji: '🏠' },
+  { value: 'double_eyelid', label: '双眼皮', emoji: '👁' },
+  { value: 'skin_care', label: '皮肤管理', emoji: '✨' },
+  { value: 'nose', label: '鼻部整形', emoji: '👃' },
+  { value: 'face', label: '面部轮廓', emoji: '💎' },
+  { value: 'dental', label: '口腔美容', emoji: '😁' },
+  { value: 'body', label: '形体塑造', emoji: '💪' },
+  { value: 'anti_aging', label: '抗衰老', emoji: '🌿' }
 ]
 
-const currentCategory = ref('all')
-const articleList = ref([])
-const loading = ref(false)
-const noMore = ref(false)
-const pageSize = 10
-const pageNum = ref(1)
+const currentCategoryLabel = computed(() => {
+  const cat = displayCategories.find(c => c.value === currentCategory.value)
+  return cat ? cat.label : '文章'
+})
 
-// 隐私弹窗
-const privacyPopupRef = ref(null)
+// Hot articles: top 4 by read count
+const hotArticles = computed(() => {
+  return [...articleList].sort((a, b) => b.read_count - a.read_count).slice(0, 4)
+})
+
+const displayArticles = computed(() => allDisplayed.value)
 
 onMounted(() => {
-  // 检查是否需要显示隐私弹窗
   const needPopup = uni.getStorageSync('need_privacy_popup')
   if (needPopup) {
     uni.removeStorageSync('need_privacy_popup')
-    privacyPopupRef.value?.open()
+    setTimeout(() => {
+      privacyPopupRef.value?.open()
+    }, 500)
   }
   loadArticles(true)
 })
 
+function loadArticles(reset = false) {
+  if (reset) {
+    page.value = 1
+    allDisplayed.value = []
+    hasMore.value = true
+  }
+  const result = getArticlesByCategory(currentCategory.value, page.value, 6)
+  allDisplayed.value = reset ? result.data : [...allDisplayed.value, ...result.data]
+  hasMore.value = result.hasMore
+  page.value++
+}
+
+function switchCategory(value) {
+  currentCategory.value = value
+  loadArticles(true)
+}
+
+function onBannerClick(banner) {
+  if (banner.link === 'form') {
+    uni.navigateTo({ url: '/pages/form/index' })
+  } else if (banner.articleId) {
+    uni.navigateTo({ url: `/pages/article/detail?id=${banner.articleId}` })
+  }
+}
+
+function goDetail(id) {
+  uni.navigateTo({ url: `/pages/article/detail?id=${id}` })
+}
+
+function goForm() {
+  uni.navigateTo({ url: '/pages/form/index' })
+}
+
+function goSearch() {
+  uni.navigateTo({ url: '/pages/search/index' })
+}
+
 async function onPrivacyAgree() {
-  // 隐私同意后，执行 click_id 获取
   let result = parseFromLaunchOptions({})
   if (!result.clickId) {
     result = await parseFromClipboard()
@@ -119,126 +194,175 @@ function onPrivacyDisagree() {
   plus.runtime.quit()
   // #endif
 }
-
-async function loadArticles(reset = false) {
-  if (loading.value) return
-  if (!reset && noMore.value) return
-
-  if (reset) {
-    pageNum.value = 1
-    noMore.value = false
-    articleList.value = []
-  }
-
-  loading.value = true
-  try {
-    let query = db.collection('articles').where({ status: 1 })
-
-    if (currentCategory.value !== 'all') {
-      query = db.collection('articles').where({
-        status: 1,
-        category: currentCategory.value
-      })
-    }
-
-    const res = await query
-      .orderBy('sort_order', 'asc')
-      .orderBy('create_time', 'desc')
-      .skip((pageNum.value - 1) * pageSize)
-      .limit(pageSize)
-      .field('_id,title,summary,cover_image,category,create_time')
-      .get()
-
-    const list = res.result.data || []
-    if (list.length < pageSize) {
-      noMore.value = true
-    }
-    articleList.value = reset ? list : [...articleList.value, ...list]
-    pageNum.value++
-  } catch (e) {
-    console.error('loadArticles failed:', e)
-    uni.showToast({ title: '加载失败', icon: 'none' })
-  } finally {
-    loading.value = false
-  }
-}
-
-function switchCategory(value) {
-  currentCategory.value = value
-  loadArticles(true)
-}
-
-function goDetail(id) {
-  uni.navigateTo({ url: `/pages/article/detail?id=${id}` })
-}
-
-function goForm() {
-  uni.navigateTo({ url: '/pages/form/index' })
-}
-
-onPullDownRefresh(() => {
-  loadArticles(true).then(() => {
-    uni.stopPullDownRefresh()
-  })
-})
-
-onReachBottom(() => {
-  loadArticles()
-})
 </script>
 
 <style scoped>
 .page-index {
   padding-bottom: 120rpx;
+  background-color: #F5F5F5;
 }
-.header {
+
+/* Search bar */
+.search-bar {
+  padding: 16rpx 30rpx;
   background-color: #fff;
-  padding: 20rpx 30rpx;
 }
-.header-title {
-  font-size: 36rpx;
+.search-inner {
+  display: flex;
+  align-items: center;
+  height: 68rpx;
+  background-color: #F5F5F5;
+  border-radius: 34rpx;
+  padding: 0 24rpx;
+}
+.search-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+.search-placeholder {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* Banner */
+.banner-swiper {
+  height: 340rpx;
+  margin: 0 30rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  margin-top: 16rpx;
+}
+.banner-image {
+  width: 100%;
+  height: 340rpx;
+}
+.banner-title-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16rpx 24rpx;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+}
+.banner-title {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* Category grid */
+.category-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 24rpx 30rpx 10rpx;
+  background-color: #fff;
+  margin-top: 16rpx;
+}
+.category-grid-item {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.category-icon-wrap {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  background-color: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10rpx;
+}
+.category-icon-wrap.active {
+  background-color: #FCE4EC;
+}
+.category-icon-text {
+  font-size: 40rpx;
+}
+.category-name {
+  font-size: 24rpx;
+  color: #666;
+}
+.category-name.active {
+  color: #E91E63;
+  font-weight: bold;
+}
+
+/* Section */
+.section {
+  margin-top: 16rpx;
+  background-color: #fff;
+  padding: 24rpx 30rpx;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.section-title {
+  font-size: 32rpx;
   font-weight: bold;
   color: #333;
 }
-.category-bar {
+.section-more {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* Hot scroll */
+.hot-scroll {
   white-space: nowrap;
-  background-color: #fff;
-  padding: 20rpx 30rpx;
 }
-.category-item {
+.hot-card {
   display: inline-block;
-  padding: 12rpx 30rpx;
-  margin-right: 16rpx;
-  border-radius: 30rpx;
+  width: 280rpx;
+  margin-right: 20rpx;
+  vertical-align: top;
+  white-space: normal;
+}
+.hot-cover {
+  width: 280rpx;
+  height: 180rpx;
+  border-radius: 12rpx;
+}
+.hot-title {
   font-size: 26rpx;
-  color: #666;
-  background-color: #f5f5f5;
-}
-.category-item.active {
-  color: #fff;
-  background-color: #E91E63;
-}
-.article-list {
-  padding: 20rpx 30rpx;
-}
-.article-card {
-  display: flex;
-  background-color: #fff;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  color: #333;
+  font-weight: bold;
+  margin-top: 10rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.article-cover {
-  width: 240rpx;
-  height: 180rpx;
-  flex-shrink: 0;
+.hot-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8rpx;
+}
+.hot-author, .hot-read {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* Article list */
+.article-card {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.article-card:last-child {
+  border-bottom: none;
 }
 .article-info {
   flex: 1;
-  padding: 20rpx;
+  padding-right: 20rpx;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
 }
 .article-title {
   font-size: 30rpx;
@@ -252,19 +376,42 @@ onReachBottom(() => {
 .article-summary {
   font-size: 24rpx;
   color: #999;
-  margin-top: 12rpx;
+  margin-top: 8rpx;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.loading-tip,
-.empty-tip {
+.article-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 10rpx;
+}
+.meta-author, .meta-read, .meta-time {
+  font-size: 22rpx;
+  color: #bbb;
+}
+.meta-dot {
+  margin: 0 8rpx;
+  color: #ddd;
+  font-size: 22rpx;
+}
+.article-cover {
+  width: 220rpx;
+  height: 150rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+}
+
+/* Empty / loading */
+.loading-tip, .empty-tip {
   text-align: center;
   padding: 30rpx;
-  color: #999;
-  font-size: 26rpx;
+  color: #ccc;
+  font-size: 24rpx;
 }
+
+/* Float button */
 .float-btn {
   position: fixed;
   bottom: 140rpx;
@@ -273,6 +420,7 @@ onReachBottom(() => {
   border-radius: 60rpx;
   padding: 20rpx 40rpx;
   box-shadow: 0 4rpx 16rpx rgba(233, 30, 99, 0.4);
+  z-index: 100;
 }
 .float-btn-text {
   color: #fff;

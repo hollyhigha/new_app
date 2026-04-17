@@ -14,6 +14,12 @@
       }
     },
     {
+      "path": "pages/discover/index",
+      "style": {
+        "navigationBarTitleText": "发现"
+      }
+    },
+    {
       "path": "pages/mine/index",
       "style": {
         "navigationBarTitleText": "我的"
@@ -23,6 +29,12 @@
       "path": "pages/article/detail",
       "style": {
         "navigationBarTitleText": "文章详情"
+      }
+    },
+    {
+      "path": "pages/search/index",
+      "style": {
+        "navigationBarTitleText": "搜索"
       }
     },
     {
@@ -38,37 +50,67 @@
       }
     },
     {
+      "path": "pages/favorites/index",
+      "style": {
+        "navigationBarTitleText": "我的收藏"
+      }
+    },
+    {
+      "path": "pages/history/index",
+      "style": {
+        "navigationBarTitleText": "浏览记录"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
+    },
+    {
+      "path": "pages/about/index",
+      "style": {
+        "navigationBarTitleText": "关于我们"
+      }
+    },
+    {
+      "path": "pages/feedback/index",
+      "style": {
+        "navigationBarTitleText": "意见反馈"
+      }
+    },
+    {
       "path": "pages/webview/index",
       "style": {
         "navigationBarTitleText": ""
       }
-    }
-  ,{
-    "path": "uni_modules/uni-id-pages/pages/login/login-withoutpwd",
-    "style": {
+    },
+    {
+      "path": "uni_modules/uni-id-pages/pages/login/login-withoutpwd",
+      "style": {
         "navigationBarTitleText": "登录"
-    }
-}
-,{
-    "path": "uni_modules/uni-id-pages/pages/login/login-smscode",
-    "style": {
+      }
+    },
+    {
+      "path": "uni_modules/uni-id-pages/pages/login/login-smscode",
+      "style": {
         "navigationBarTitleText": "手机验证码登录"
-    }
-}
-,{
-    "path": "uni_modules/uni-id-pages/pages/userinfo/deactivate/deactivate",
-    "style": {
+      }
+    },
+    {
+      "path": "uni_modules/uni-id-pages/pages/userinfo/deactivate/deactivate",
+      "style": {
         "navigationBarTitleText": "注销账号"
-    }
-}
-,{
-    "path": "uni_modules/uni-id-pages/pages/common/webview/webview",
-    "style": {
+      }
+    },
+    {
+      "path": "uni_modules/uni-id-pages/pages/common/webview/webview",
+      "style": {
         "enablePullDownRefresh": false,
         "navigationBarTitleText": ""
+      }
     }
-}
-],
+  ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "靓人科普",
@@ -88,6 +130,12 @@
         "selectedIconPath": "static/tab/home-active.png"
       },
       {
+        "pagePath": "pages/discover/index",
+        "text": "发现",
+        "iconPath": "static/tab/discover.png",
+        "selectedIconPath": "static/tab/discover-active.png"
+      },
+      {
         "pagePath": "pages/mine/index",
         "text": "我的",
         "iconPath": "static/tab/mine.png",
@@ -98,8 +146,7 @@
   "uniIdRouter": {
     "loginPage": "uni_modules/uni-id-pages/pages/login/login-withoutpwd",
     "needLogin": [
-      "pages/form/index",
-      "pages/mine/index"
+      "pages/form/index"
     ],
     "priority": 99
   }
