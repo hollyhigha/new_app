@@ -122,6 +122,7 @@ const tabs = [
 const currentTab = ref('encyclopedia')
 
 const categoryMap = {
+  eye_bag: '眼袋',
   double_eyelid: '双眼皮',
   skin_care: '皮肤管理',
   nose: '鼻部整形',
@@ -133,8 +134,13 @@ const categoryMap = {
 
 const wikiCategories = [
   {
-    value: 'double_eyelid', label: '双眼皮', emoji: '👁',
-    desc: '全切/埋线/韩式三点',
+    value: 'eye_bag', label: '眼袋', emoji: '👁',
+    desc: '内切/外切/无创祛眼袋',
+    count: articleList.filter(a => a.category === 'eye_bag').length
+  },
+  {
+    value: 'double_eyelid', label: '双眼皮', emoji: '✂️',
+    desc: '全切/埋线/开眼角',
     count: articleList.filter(a => a.category === 'double_eyelid').length
   },
   {

@@ -109,12 +109,12 @@ const hasMore = ref(true)
 
 const displayCategories = [
   { value: 'all', label: '全部', emoji: '🏠' },
-  { value: 'double_eyelid', label: '双眼皮', emoji: '👁' },
+  { value: 'eye_bag', label: '眼袋', emoji: '👁' },
+  { value: 'double_eyelid', label: '双眼皮', emoji: '✂️' },
   { value: 'skin_care', label: '皮肤管理', emoji: '✨' },
   { value: 'nose', label: '鼻部整形', emoji: '👃' },
   { value: 'face', label: '面部轮廓', emoji: '💎' },
   { value: 'dental', label: '口腔美容', emoji: '😁' },
-  { value: 'body', label: '形体塑造', emoji: '💪' },
   { value: 'anti_aging', label: '抗衰老', emoji: '🌿' }
 ]
 

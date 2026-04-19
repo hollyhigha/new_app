@@ -11,6 +11,7 @@ exports.main = async (event) => {
   } = event
 
   const interestMap = {
+    eye_bag: '眼袋',
     double_eyelid: '双眼皮',
     skin_care: '皮肤管理',
     nose: '鼻部整形',

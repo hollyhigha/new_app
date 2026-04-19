@@ -39,7 +39,7 @@
       "description": "感兴趣内容",
       "items": {
         "bsonType": "string",
-        "enum": ["double_eyelid", "skin_care", "nose", "face", "dental", "body", "anti_aging"]
+        "enum": ["eye_bag", "double_eyelid", "skin_care", "nose", "face", "dental", "body", "anti_aging"]
       }
     },
     "click_id": {

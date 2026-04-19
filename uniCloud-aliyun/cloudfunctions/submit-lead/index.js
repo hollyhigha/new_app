@@ -34,7 +34,7 @@ exports.main = async (event, context) => {
   if (!Array.isArray(interest) || interest.length === 0) {
     return { code: 400, msg: '请至少选择一项感兴趣的内容' }
   }
-  const validInterest = ['double_eyelid', 'skin_care', 'nose', 'face', 'dental', 'body', 'anti_aging']
+  const validInterest = ['eye_bag', 'double_eyelid', 'skin_care', 'nose', 'face', 'dental', 'body', 'anti_aging']
   if (!interest.every(i => validInterest.includes(i))) {
     return { code: 400, msg: '感兴趣内容参数无效' }
   }
