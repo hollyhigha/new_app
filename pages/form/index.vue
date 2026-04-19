@@ -54,7 +54,9 @@
 
     <!-- 授权勾选 -->
     <view class="consent-row" @click="formData.consent = !formData.consent">
-      <view :class="['checkbox', formData.consent && 'checked']" />
+      <view :class="['checkbox', formData.consent && 'checked']">
+        <text v-if="formData.consent" class="checkbox-tick">✓</text>
+      </view>
       <text class="consent-text">
         我已阅读并同意<text class="consent-link" @click.stop="openPrivacy">《隐私政策》</text>，授权平台为我匹配专业咨询服务
       </text>
@@ -267,6 +269,15 @@ async function onCaptchaSuccess() {
 .checkbox.checked {
   background-color: #E91E63;
   border-color: #E91E63;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.checkbox-tick {
+  color: #fff;
+  font-size: 24rpx;
+  line-height: 1;
+  font-weight: bold;
 }
 .consent-text {
   font-size: 24rpx;
