@@ -109,7 +109,7 @@ const hasMore = ref(true)
 
 const displayCategories = [
   { value: 'all', label: '全部', emoji: '🏠' },
-  { value: 'eye_bag', label: '眼袋', emoji: '👁' },
+  { value: 'eye_bag', label: '眼袋🔥', emoji: '👁' },
   { value: 'double_eyelid', label: '双眼皮', emoji: '✂️' },
   { value: 'skin_care', label: '皮肤管理', emoji: '✨' },
   { value: 'nose', label: '鼻部整形', emoji: '👃' },
@@ -123,9 +123,17 @@ const currentCategoryLabel = computed(() => {
   return cat ? cat.label : '文章'
 })
 
-// Hot articles: top 4 by read count
+// Hot articles: 前2个固定为眼袋文章，后2个取其他分类阅读量最高的
 const hotArticles = computed(() => {
-  return [...articleList].sort((a, b) => b.read_count - a.read_count).slice(0, 4)
+  const eyeBagTop = [...articleList]
+    .filter(a => a.category === 'eye_bag')
+    .sort((a, b) => b.read_count - a.read_count)
+    .slice(0, 2)
+  const othersTop = [...articleList]
+    .filter(a => a.category !== 'eye_bag')
+    .sort((a, b) => b.read_count - a.read_count)
+    .slice(0, 2)
+  return [...eyeBagTop, ...othersTop]
 })
 
 const displayArticles = computed(() => allDisplayed.value)
