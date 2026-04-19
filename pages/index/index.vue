@@ -24,8 +24,11 @@
     <!-- 分类导航 -->
     <view class="category-grid">
       <view v-for="cat in displayCategories" :key="cat.value" class="category-grid-item" @click="switchCategory(cat.value)">
-        <view :class="['category-icon-wrap', currentCategory === cat.value && 'active']">
-          <text class="category-icon-text">{{ cat.emoji }}</text>
+        <view class="category-icon-container">
+          <view :class="['category-icon-wrap', currentCategory === cat.value && 'active']">
+            <text class="category-icon-text">{{ cat.emoji }}</text>
+          </view>
+          <text v-if="cat.hot" class="category-hot-badge">🔥</text>
         </view>
         <text :class="['category-name', currentCategory === cat.value && 'active']">{{ cat.label }}</text>
       </view>
@@ -109,7 +112,7 @@ const hasMore = ref(true)
 
 const displayCategories = [
   { value: 'all', label: '全部', emoji: '🏠' },
-  { value: 'eye_bag', label: '眼袋🔥', emoji: '👁' },
+  { value: 'eye_bag', label: '眼袋', emoji: '👁', hot: true },
   { value: 'double_eyelid', label: '双眼皮', emoji: '✂️' },
   { value: 'skin_care', label: '皮肤管理', emoji: '✨' },
   { value: 'nose', label: '鼻部整形', emoji: '👃' },
@@ -274,6 +277,12 @@ function onPrivacyDisagree() {
   align-items: center;
   margin-bottom: 20rpx;
 }
+.category-icon-container {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
+  margin-bottom: 10rpx;
+}
 .category-icon-wrap {
   width: 88rpx;
   height: 88rpx;
@@ -282,7 +291,13 @@ function onPrivacyDisagree() {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10rpx;
+}
+.category-hot-badge {
+  position: absolute;
+  top: -10rpx;
+  left: -10rpx;
+  font-size: 28rpx;
+  line-height: 1;
 }
 .category-icon-wrap.active {
   background-color: #FCE4EC;
