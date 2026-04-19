@@ -28,7 +28,7 @@
         <view v-for="cat in wikiCategories" :key="cat.value" class="wiki-card" @click="goCategory(cat.value)">
           <view class="wiki-emoji-wrap">
             <view class="wiki-emoji">{{ cat.emoji }}</view>
-            <text v-if="cat.hot" class="wiki-hot-badge">🔥</text>
+            <text v-if="cat.hot" class="wiki-hot-badge">热</text>
           </view>
           <text class="wiki-title">{{ cat.label }}</text>
           <text class="wiki-desc">{{ cat.desc }}</text>
@@ -528,10 +528,16 @@ function goFormFromQuiz() {
 }
 .wiki-hot-badge {
   position: absolute;
-  top: -14rpx;
-  left: -14rpx;
-  font-size: 28rpx;
-  line-height: 1;
+  top: -8rpx;
+  right: -20rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF3B30);
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: bold;
+  padding: 4rpx 10rpx;
+  border-radius: 20rpx;
+  line-height: 1.4;
+  letter-spacing: 1rpx;
 }
 .wiki-title {
   font-size: 30rpx;

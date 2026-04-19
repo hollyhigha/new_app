@@ -28,7 +28,7 @@
           <view :class="['category-icon-wrap', currentCategory === cat.value && 'active']">
             <text class="category-icon-text">{{ cat.emoji }}</text>
           </view>
-          <text v-if="cat.hot" class="category-hot-badge">🔥</text>
+          <text v-if="cat.hot" class="category-hot-badge">热</text>
         </view>
         <text :class="['category-name', currentCategory === cat.value && 'active']">{{ cat.label }}</text>
       </view>
@@ -294,10 +294,16 @@ function onPrivacyDisagree() {
 }
 .category-hot-badge {
   position: absolute;
-  top: -10rpx;
-  left: -10rpx;
-  font-size: 28rpx;
-  line-height: 1;
+  top: -8rpx;
+  right: -8rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF3B30);
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: bold;
+  padding: 4rpx 10rpx;
+  border-radius: 20rpx;
+  line-height: 1.4;
+  letter-spacing: 1rpx;
 }
 .category-icon-wrap.active {
   background-color: #FCE4EC;
