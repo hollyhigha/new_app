@@ -1,9 +1,15 @@
 /**
- * click_id 多渠道获取工具
- * 优先级：URL Scheme/Intent 参数 > Universal Link > 剪切板
+ * click_id 获取工具
+ *
+ * 归因来源：
+ *   1. URL Scheme / 启动参数 (query.click_id / plus.runtime.arguments)
+ *   2. Universal Link（通过启动参数一并传入）
+ *
+ * 合规说明：
+ *   - 为遵循个人信息最小化原则及避免 iOS/Android 剪贴板系统提示，
+ *     本应用不再从剪贴板读取归因参数。
+ *   - 所有归因参数仅在用户同意《隐私政策》后才会读取和上传。
  */
-
-const CLIPBOARD_PATTERN = /^##LIANGREN_(.+?)_(.+?)##$/
 
 /**
  * 从启动参数中解析 click_id 和 client_id
@@ -32,7 +38,6 @@ export function parseFromLaunchOptions(launchOptions) {
         return { clickId, clientId, source: 'url_scheme' }
       }
     } catch (e) {
-      // args 不是有效 URL，尝试直接解析
       const match = args.match(/click_id=([^&]+)/)
       const clientMatch = args.match(/client_id=([^&]+)/)
       if (match && clientMatch) {
@@ -50,42 +55,6 @@ export function parseFromLaunchOptions(launchOptions) {
 }
 
 /**
- * 从剪切板获取 click_id（兜底方案）
- * 格式：##LIANGREN_clickId_clientId##
- * @returns {Promise<{ clickId: string|null, clientId: string|null, source: string|null }>}
- */
-export function parseFromClipboard() {
-  return new Promise((resolve) => {
-    // #ifdef APP-PLUS
-    uni.getClipboardData({
-      success(res) {
-        const content = (res.data || '').trim()
-        const match = content.match(CLIPBOARD_PATTERN)
-        if (match) {
-          // 读取后立即清除剪切板
-          uni.setClipboardData({ data: '', showToast: false })
-          resolve({
-            clickId: match[1],
-            clientId: match[2],
-            source: 'clipboard'
-          })
-        } else {
-          resolve({ clickId: null, clientId: null, source: null })
-        }
-      },
-      fail() {
-        resolve({ clickId: null, clientId: null, source: null })
-      }
-    })
-    // #endif
-
-    // #ifndef APP-PLUS
-    resolve({ clickId: null, clientId: null, source: null })
-    // #endif
-  })
-}
-
-/**
  * 保存 click_id 到本地缓存
  */
 export function saveClickId({ clickId, clientId, source }) {
@@ -98,18 +67,28 @@ export function saveClickId({ clickId, clientId, source }) {
 
 /**
  * 获取本地缓存的 click_id
+ * click_id 有效期 24 小时，超期视为无效（巨量引擎要求）
  */
 export function getLocalClickId() {
+  const clickTime = uni.getStorageSync('click_time') || 0
+  const EXPIRES = 24 * 60 * 60 * 1000
+  if (clickTime && Date.now() - clickTime > EXPIRES) {
+    uni.removeStorageSync('click_id')
+    uni.removeStorageSync('client_id')
+    uni.removeStorageSync('click_id_source')
+    uni.removeStorageSync('click_time')
+    return { clickId: null, clientId: null, source: null, clickTime: null }
+  }
   return {
     clickId: uni.getStorageSync('click_id') || null,
     clientId: uni.getStorageSync('client_id') || null,
     source: uni.getStorageSync('click_id_source') || null,
-    clickTime: uni.getStorageSync('click_time') || null
+    clickTime: clickTime || null
   }
 }
 
 /**
- * 同步 click_id 到云端用户记录
+ * 同步 click_id 到云端用户记录（仅在用户登录后调用）
  */
 export async function syncClickIdToCloud({ clickId, clientId, source }) {
   if (!clickId) return
@@ -130,21 +109,26 @@ export async function syncClickIdToCloud({ clickId, clientId, source }) {
 
 /**
  * 回传 App 激活事件到巨量引擎
- * 调用时机：用户同意隐私协议后（首次启动），在 App.vue onPrivacyAgree 中调用
- * 巨量引擎要求：App 安装激活须在用户授权后才能回传
+ * 调用时机：用户同意隐私协议后（首次启动）
  */
 export async function reportAppInstall({ clickId, clientId }) {
   if (!clickId) return
-  // 避免重复回传：本地标记是否已上报激活
   const reported = uni.getStorageSync('app_install_reported')
   if (reported) return
   try {
+    // #ifdef APP-PLUS
+    const systemInfo = uni.getSystemInfoSync()
+    const appType = systemInfo.osName === 'ios' ? 0 : 1
+    // #endif
     await uniCloud.callFunction({
       name: 'report-conversion',
       data: {
         event_type: 'app_install',
         click_id: clickId,
-        client_id: clientId || ''
+        client_id: clientId || '',
+        // #ifdef APP-PLUS
+        app_type: appType
+        // #endif
       }
     })
     uni.setStorageSync('app_install_reported', '1')
@@ -154,9 +138,7 @@ export async function reportAppInstall({ clickId, clientId }) {
 }
 
 /**
- * 回传表单提交事件到巨量引擎
- * 调用时机：submit-lead 云函数已在服务端自动触发，
- * 此函数供前端在云函数不可用时作为兜底调用
+ * 回传表单提交事件到巨量引擎（前端兜底，服务端已自动触发）
  */
 export async function reportFormSubmit({ clickId, clientId }) {
   if (!clickId) return

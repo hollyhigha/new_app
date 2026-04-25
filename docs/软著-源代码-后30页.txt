@@ -1,0 +1,1597 @@
+# 软著登记 —— 源程序文档（后 30 页）
+# 软件名称：靓人科普医美资讯服务软件 V1.0
+# 提取时间：2026-04-19 10:55:42
+# 总行数：1500   总页数（50 行/页）：30
+# 说明：本文件仅供软著登记申请使用，敏感信息已脱敏
+
+=============================================================================
+
+/* ========================================================================= */
+/* 文件：uniCloud-aliyun/cloudfunctions/get-content/index.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+'use strict'
+
+/**
+ * 通用内容读取云函数（合并 get-articles / get-qa / get-tips）
+ *
+ * 入参：
+ *   action:
+ *     'list-articles'    列出文章（支持 category / keyword / page / pageSize）
+ *     'get-article'      获取文章详情（id 或 seed_id）
+ *     'related-articles' 获取相关文章（按分类）
+ *     'list-qa'          列出问答
+ *     'list-tips'        列出美丽贴士
+ *     'hot-articles'     热门文章（取 sort_order desc）
+ *
+ * 返回：
+ *   { code: 0, data: { items | item, total, page, pageSize } }
+ */
+
+const db = uniCloud.database()
+const dbCmd = db.command
+const $ = db.command.aggregate
+
+const DEFAULT_PAGE_SIZE = 20
+const MAX_PAGE_SIZE = 50
+
+exports.main = async (event) => {
+  const { action } = event
+  try {
+    switch (action) {
+      case 'list-articles':
+        return await listArticles(event)
+      case 'get-article':
+        return await getArticle(event)
+      case 'related-articles':
+        return await relatedArticles(event)
+      case 'list-qa':
+        return await listQa(event)
+      case 'list-tips':
+        return await listTips(event)
+      case 'hot-articles':
+        return await hotArticles(event)
+      default:
+        return { code: 400, msg: `unknown action: ${action}` }
+    }
+  } catch (e) {
+    console.error('get-content error:', e)
+
+---------- 第 1 页 / 共 30 页 ----------
+
+    return { code: 500, msg: e.message || 'internal error' }
+  }
+}
+
+function normalizePage(event) {
+  const page = Math.max(1, parseInt(event.page || 1))
+  const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(event.pageSize || DEFAULT_PAGE_SIZE)))
+  return { page, pageSize }
+}
+
+async function listArticles(event) {
+  const { page, pageSize } = normalizePage(event)
+  const { category = 'all', keyword = '' } = event
+
+  const where = { status: 1 }
+  if (category && category !== 'all') {
+    where.category = category
+  }
+  if (keyword) {
+    const kw = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+    where.title = kw
+  }
+
+  const coll = db.collection('articles')
+  const [listRes, countRes] = await Promise.all([
+    coll
+      .where(where)
+      .field({
+        title: true,
+        summary: true,
+        cover_image: true,
+        category: true,
+        author: true,
+        read_count: true,
+        like_count: true,
+        create_time: true,
+        seed_id: true
+      })
+      .orderBy('sort_order', 'desc')
+      .orderBy('create_time', 'desc')
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .get(),
+    coll.where(where).count()
+  ])
+
+  return {
+    code: 0,
+    data: {
+      items: listRes.data,
+
+---------- 第 2 页 / 共 30 页 ----------
+
+      total: countRes.total,
+      page,
+      pageSize
+    }
+  }
+}
+
+async function getArticle(event) {
+  const { id, seed_id } = event
+  const coll = db.collection('articles')
+  let res
+  if (id) {
+    res = await coll.doc(id).get()
+  } else if (seed_id) {
+    res = await coll.where({ seed_id, status: 1 }).limit(1).get()
+  } else {
+    return { code: 400, msg: 'missing id or seed_id' }
+  }
+  const item = Array.isArray(res.data) ? res.data[0] : res.data
+  if (!item || item.status !== 1) {
+    return { code: 404, msg: 'not found' }
+  }
+  // 阅读数 +1（best-effort，失败忽略）
+  coll.doc(item._id).update({ read_count: dbCmd.inc(1) }).catch(() => {})
+  return { code: 0, data: { item } }
+}
+
+async function relatedArticles(event) {
+  const { category, exclude_id, limit = 5 } = event
+  if (!category) return { code: 400, msg: 'missing category' }
+  const where = { status: 1, category }
+  if (exclude_id) where._id = dbCmd.neq(exclude_id)
+  const res = await db.collection('articles')
+    .where(where)
+    .field({
+      title: true, summary: true, cover_image: true, seed_id: true,
+      read_count: true, like_count: true, author: true, category: true, create_time: true
+    })
+    .orderBy('sort_order', 'desc')
+    .orderBy('create_time', 'desc')
+    .limit(Math.min(20, parseInt(limit) || 5))
+    .get()
+  return { code: 0, data: { items: res.data } }
+}
+
+async function hotArticles(event) {
+  const { limit = 6 } = event
+  const res = await db.collection('articles')
+    .where({ status: 1 })
+    .field({
+
+---------- 第 3 页 / 共 30 页 ----------
+
+      title: true, summary: true, cover_image: true, seed_id: true,
+      read_count: true, like_count: true, author: true, category: true, create_time: true
+    })
+    .orderBy('read_count', 'desc')
+    .orderBy('sort_order', 'desc')
+    .limit(Math.min(20, parseInt(limit) || 6))
+    .get()
+  return { code: 0, data: { items: res.data } }
+}
+
+async function listQa(event) {
+  const { page, pageSize } = normalizePage(event)
+  const res = await db.collection('qa')
+    .where({ status: 1 })
+    .orderBy('sort_order', 'asc')
+    .orderBy('create_time', 'desc')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .get()
+  return { code: 0, data: { items: res.data, page, pageSize } }
+}
+
+async function listTips(event) {
+  const { page, pageSize } = normalizePage(event)
+  const res = await db.collection('tips')
+    .where({ status: 1 })
+    .orderBy('sort_order', 'asc')
+    .orderBy('create_time', 'desc')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .get()
+  return { code: 0, data: { items: res.data, page, pageSize } }
+}
+
+/* ========================================================================= */
+/* 文件：uniCloud-aliyun/cloudfunctions/submit-feedback/index.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+'use strict'
+
+const db = uniCloud.database()
+const dbCmd = db.command
+const feedbackCollection = db.collection('feedbacks')
+
+const VALID_TYPES = ['suggest', 'error', 'problem', 'other']
+const VALID_PLATFORMS = ['ios', 'android', 'h5', 'mp-weixin', 'other']
+
+exports.main = async (event, context) => {
+  let userId = ''
+  try {
+
+---------- 第 4 页 / 共 30 页 ----------
+
+    const uniID = require('uni-id')
+    const payload = await uniID.checkToken(event.uniIdToken)
+    if (!payload.code) {
+      userId = payload.uid
+    }
+  } catch (e) {
+    // 未登录，可匿名反馈
+  }
+
+  const {
+    type = 'other',
+    content = '',
+    contact = '',
+    platform = 'other',
+    app_version = ''
+  } = event
+
+  const trimmedContent = String(content).trim()
+  if (!VALID_TYPES.includes(type)) {
+    return { code: 400, msg: '反馈类型无效' }
+  }
+  if (!trimmedContent || trimmedContent.length < 10) {
+    return { code: 400, msg: '反馈内容至少 10 个字' }
+  }
+  if (trimmedContent.length > 500) {
+    return { code: 400, msg: '反馈内容不得超过 500 字' }
+  }
+  const trimmedContact = String(contact).trim().slice(0, 100)
+  const safePlatform = VALID_PLATFORMS.includes(platform) ? platform : 'other'
+
+  const clientIP = context.CLIENTIP || ''
+  const now = Date.now()
+
+  if (clientIP) {
+    const oneHourAgo = now - 60 * 60 * 1000
+    const ipCount = await feedbackCollection
+      .where({ submit_ip: clientIP, create_time: dbCmd.gte(oneHourAgo) })
+      .count()
+    if (ipCount.result.total >= 10) {
+      return { code: 429, msg: '操作过于频繁，请稍后再试' }
+    }
+  }
+
+  await feedbackCollection.add({
+    user_id: userId || '',
+    type,
+    content: trimmedContent,
+    contact: trimmedContact,
+    platform: safePlatform,
+    app_version: String(app_version || '').slice(0, 32),
+
+---------- 第 5 页 / 共 30 页 ----------
+
+    submit_ip: clientIP,
+    status: 0,
+    reply: '',
+    create_time: now,
+    update_time: now
+  })
+
+  return { code: 0, msg: '提交成功' }
+}
+
+/* ========================================================================= */
+/* 文件：uniCloud-aliyun/cloudfunctions/submit-lead/index.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+'use strict'
+
+const db = uniCloud.database()
+const dbCmd = db.command
+const leadsCollection = db.collection('leads')
+const clientsCollection = db.collection('clients')
+
+exports.main = async (event, context) => {
+  // 1. Token 校验（可选，未登录也可提交）
+  let userId = ''
+  try {
+    const uniID = require('uni-id')
+    const payload = await uniID.checkToken(event.uniIdToken)
+    if (!payload.code) {
+      userId = payload.uid
+    }
+  } catch (e) {
+    // 未登录，继续
+  }
+
+  const { name, phone, city, interest, click_id, client_id, consent_time } = event
+
+  // 2. 参数校验（不信任前端，先 trim 再校验）
+  const trimmedName = (name || '').trim()
+  if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 20) {
+    return { code: 400, msg: '姓名需 2-20 个字符' }
+  }
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    return { code: 400, msg: '手机号格式不正确' }
+  }
+  if (!city) {
+    return { code: 400, msg: '请选择城市' }
+  }
+  if (!Array.isArray(interest) || interest.length === 0) {
+    return { code: 400, msg: '请至少选择一项感兴趣的内容' }
+  }
+
+---------- 第 6 页 / 共 30 页 ----------
+
+  const validInterest = ['eye_bag', 'double_eyelid', 'skin_care', 'nose', 'face', 'dental', 'body', 'anti_aging']
+  if (!interest.every(i => validInterest.includes(i))) {
+    return { code: 400, msg: '感兴趣内容参数无效' }
+  }
+  if (!consent_time) {
+    return { code: 400, msg: '请同意授权' }
+  }
+
+  // 3. 频率限制
+  const clientIP = context.CLIENTIP || ''
+  const now = Date.now()
+  const oneDayAgo = now - 24 * 60 * 60 * 1000
+  const oneHourAgo = now - 60 * 60 * 1000
+
+  // 3a. 同一 user_id 24 小时内最多 3 次（仅登录用户）
+  if (userId) {
+    const userCount = await leadsCollection
+      .where({ user_id: userId, create_time: dbCmd.gte(oneDayAgo) })
+      .count()
+    if (userCount.result.total >= 3) {
+      return { code: 429, msg: '提交过于频繁，请明天再试' }
+    }
+  }
+
+  // 3b. 同一 phone 全局最多 5 条有效线索
+  const phoneCount = await leadsCollection
+    .where({ phone, status: dbCmd.neq(3) })
+    .count()
+  if (phoneCount.result.total >= 5) {
+    return { code: 429, msg: '该手机号已达提交上限' }
+  }
+
+  // 3c. 同一 IP 1 小时内最多 10 次
+  if (clientIP) {
+    const ipCount = await leadsCollection
+      .where({ submit_ip: clientIP, create_time: dbCmd.gte(oneHourAgo) })
+      .count()
+    if (ipCount.result.total >= 10) {
+      return { code: 429, msg: '操作过于频繁，请稍后再试' }
+    }
+  }
+
+  // 4. 查询客户信息（冗余存储客户名称）
+  let clientName = ''
+  if (client_id) {
+    const clientRes = await clientsCollection
+      .where({ client_id, status: 1 })
+      .limit(1)
+      .get()
+    if (clientRes.result.data.length > 0) {
+
+---------- 第 7 页 / 共 30 页 ----------
+
+      clientName = clientRes.result.data[0].client_name
+    }
+  }
+
+  // 5. 写入 leads 表
+  const leadData = {
+    user_id: userId,
+    user_mobile: '',
+    name: trimmedName,
+    phone: phone.trim(),
+    city,
+    interest,
+    click_id: click_id || '',
+    client_id: client_id || '',
+    client_name: clientName,
+    status: 0,
+    source: 'oceanengine',
+    submit_ip: clientIP,
+    consent_time,
+    consent_version: 'v1.0',
+    follow_note: '',
+    create_time: now,
+    update_time: now
+  }
+
+  const addRes = await leadsCollection.add(leadData)
+
+  // 6. 异步触发企微通知（不阻塞主流程）
+  uniCloud.callFunction({
+    name: 'notify-wechat',
+    data: {
+      lead_id: addRes.result.id,
+      ...leadData
+    }
+  }).catch(err => {
+    console.error('notify-wechat failed:', err)
+  })
+
+  // 7. 异步触发巨量引擎回传（不阻塞主流程）
+  if (click_id) {
+    uniCloud.callFunction({
+      name: 'report-conversion',
+      data: {
+        event_type: 'form_submit',
+        click_id,
+        client_id: client_id || '',
+        user_id: userId
+      }
+    }).catch(err => {
+      console.error('report-conversion failed:', err)
+
+---------- 第 8 页 / 共 30 页 ----------
+
+    })
+  }
+
+  return { code: 0, msg: '提交成功' }
+}
+
+/* ========================================================================= */
+/* 文件：uniCloud-aliyun/cloudfunctions/report-conversion/index.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+'use strict'
+
+const db = uniCloud.database()
+const logsCollection = db.collection('conversion-logs')
+
+// 巨量引擎转化回传 API
+// 需在 uniCloud 云函数环境变量中配置：
+//   OE_ACCESS_TOKEN       - 巨量引擎后台获取的 Access Token
+const OE_API_URL = 'https://analytics.oceanengine.com/api/v2/conversion'
+const OE_ACCESS_TOKEN = process.env.OE_ACCESS_TOKEN || ''
+
+// 重试时间间隔（首次失败后的重试节奏，毫秒）
+// 1min / 5min / 15min / 30min / 2h
+const RETRY_INTERVALS = [60 * 1000, 5 * 60 * 1000, 15 * 60 * 1000, 30 * 60 * 1000, 2 * 60 * 60 * 1000]
+
+// 巨量引擎事件类型映射
+// 完整列表见：https://ad.oceanengine.com/openapi/doc/index.html?id=1680
+const EVENT_TYPE_MAP = {
+  register: 2,       // 注册
+  form_submit: 6,    // 表单提交（获客）
+  app_install: 4     // 激活（App 首次安装打开）
+}
+
+// app_type: 1=Android, 0=iOS；H5/小程序不回传
+function normalizeAppType(appType) {
+  if (appType === 0 || appType === 1) return appType
+  return undefined
+}
+
+exports.main = async (event) => {
+  const {
+    event_type,
+    click_id,
+    client_id = '',
+    user_id = '',
+    app_type
+  } = event
+
+  if (!click_id || !event_type) {
+    return { code: 400, msg: 'missing click_id or event_type' }
+
+---------- 第 9 页 / 共 30 页 ----------
+
+  }
+
+  // 幂等：同一 click_id + event_type 已成功回传则跳过
+  const existLog = await logsCollection
+    .where({ click_id, event_type, success: true })
+    .limit(1)
+    .get()
+
+  if (existLog.result.data.length > 0) {
+    return { code: 0, msg: 'already reported' }
+  }
+
+  if (!OE_ACCESS_TOKEN) {
+    console.warn('OE_ACCESS_TOKEN not configured, skipping report')
+    return { code: 0, msg: 'skipped: token not configured' }
+  }
+
+  const oeEventType = EVENT_TYPE_MAP[event_type]
+  if (oeEventType === undefined) {
+    return { code: 400, msg: `unknown event_type: ${event_type}` }
+  }
+
+  const normalizedAppType = normalizeAppType(app_type)
+
+  const requestBody = {
+    event_type: oeEventType,
+    context: {
+      ad: {
+        callback: click_id
+      }
+    },
+    timestamp: Math.floor(Date.now() / 1000)
+  }
+  // 巨量引擎要求 App 端事件携带 app_type 字段
+  if (normalizedAppType !== undefined) {
+    requestBody.context.ad.app_type = normalizedAppType
+  }
+
+  let success = false
+  let responseCode = 0
+  let responseBody = {}
+
+  try {
+    const res = await uniCloud.httpclient.request(OE_API_URL, {
+      method: 'POST',
+      data: requestBody,
+      contentType: 'json',
+      dataType: 'json',
+      timeout: 10000,
+      headers: {
+
+---------- 第 10 页 / 共 30 页 ----------
+
+        'Access-Token': OE_ACCESS_TOKEN
+      }
+    })
+    responseCode = res.status
+    responseBody = res.data || {}
+    success = responseCode === 200 && responseBody.code === 0
+    if (!success) {
+      console.error('OE API returned error:', JSON.stringify(responseBody))
+    }
+  } catch (e) {
+    console.error('report-conversion request failed:', e)
+    responseBody = { error: e.message }
+  }
+
+  const now = Date.now()
+  await logsCollection.add({
+    user_id,
+    click_id,
+    client_id,
+    event_type,
+    oe_event_type: oeEventType,
+    app_type: normalizedAppType === undefined ? null : normalizedAppType,
+    request_body: requestBody,
+    response_code: responseCode,
+    response_body: responseBody,
+    success,
+    retry_count: 0,
+    next_retry_time: success ? null : now + RETRY_INTERVALS[0],
+    create_time: now
+  })
+
+  return {
+    code: success ? 0 : -1,
+    msg: success ? 'ok' : 'report failed, will retry'
+  }
+}
+
+/* ========================================================================= */
+/* 文件：uniCloud-aliyun/cloudfunctions/retry-conversion/index.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+'use strict'
+
+const db = uniCloud.database()
+const dbCmd = db.command
+const logsCollection = db.collection('conversion-logs')
+
+const OE_API_URL = 'https://analytics.oceanengine.com/api/v2/conversion'
+const OE_ACCESS_TOKEN = process.env.OE_ACCESS_TOKEN || ''
+
+
+---------- 第 11 页 / 共 30 页 ----------
+
+// 重试节奏与 report-conversion 保持一致
+// 1min / 5min / 15min / 30min / 2h
+const RETRY_INTERVALS = [60 * 1000, 5 * 60 * 1000, 15 * 60 * 1000, 30 * 60 * 1000, 2 * 60 * 60 * 1000]
+const MAX_RETRY = RETRY_INTERVALS.length
+const REPORT_TTL = 7 * 24 * 60 * 60 * 1000
+
+const INTERNAL_WEBHOOK = process.env.INTERNAL_WEBHOOK_URL || ''
+
+exports.main = async () => {
+  const now = Date.now()
+  const sevenDaysAgo = now - REPORT_TTL
+
+  const res = await logsCollection
+    .where({
+      success: false,
+      retry_count: dbCmd.lt(MAX_RETRY),
+      next_retry_time: dbCmd.lte(now),
+      create_time: dbCmd.gte(sevenDaysAgo)
+    })
+    .limit(50)
+    .get()
+
+  const records = res.result.data || []
+  console.log(`retry-conversion: found ${records.length} records to retry`)
+
+  let successCount = 0
+  let failCount = 0
+
+  for (const record of records) {
+    try {
+      const requestBody = record.request_body || {
+        event_type: record.event_type === 'register' ? 0 : 6,
+        context: { ad: { callback: record.click_id } },
+        timestamp: Math.floor(Date.now() / 1000)
+      }
+
+      const apiRes = await uniCloud.httpclient.request(OE_API_URL, {
+        method: 'POST',
+        data: requestBody,
+        contentType: 'json',
+        dataType: 'json',
+        timeout: 10000,
+        headers: { 'Access-Token': OE_ACCESS_TOKEN }
+      })
+
+      const success = apiRes.status === 200 && apiRes.data?.code === 0
+      const newRetryCount = record.retry_count + 1
+
+      const updateData = {
+        success,
+
+---------- 第 12 页 / 共 30 页 ----------
+
+        retry_count: newRetryCount,
+        response_code: apiRes.status,
+        response_body: apiRes.data || {}
+      }
+
+      if (!success && newRetryCount < MAX_RETRY) {
+        const idx = Math.min(newRetryCount, RETRY_INTERVALS.length - 1)
+        updateData.next_retry_time = now + RETRY_INTERVALS[idx]
+      } else {
+        updateData.next_retry_time = null
+      }
+
+      await logsCollection.doc(record._id).update(updateData)
+
+      if (success) {
+        successCount++
+      } else {
+        failCount++
+        if (newRetryCount >= MAX_RETRY && INTERNAL_WEBHOOK) {
+          await notifyFailure(record)
+        }
+      }
+    } catch (e) {
+      console.error(`retry failed for ${record._id}:`, e)
+      failCount++
+    }
+  }
+
+  return {
+    total: records.length,
+    success: successCount,
+    fail: failCount
+  }
+}
+
+async function notifyFailure(record) {
+  const msg = {
+    msgtype: 'markdown',
+    markdown: {
+      content: [
+        '**转化回传失败告警**',
+        `> click_id: ${record.click_id}`,
+        `> event_type: ${record.event_type}`,
+        `> 重试次数: ${record.retry_count + 1}/${MAX_RETRY}`,
+        `> 最后响应: ${JSON.stringify(record.response_body || {}).slice(0, 200)}`,
+        `> 请在 uniCloud 控制台检查并手动处理`
+      ].join('\n')
+    }
+  }
+  try {
+
+---------- 第 13 页 / 共 30 页 ----------
+
+    await uniCloud.httpclient.request(INTERNAL_WEBHOOK, {
+      method: 'POST',
+      data: msg,
+      contentType: 'json',
+      timeout: 5000
+    })
+  } catch (e) {
+    console.error('notifyFailure webhook failed:', e)
+  }
+}
+
+/* ========================================================================= */
+/* 文件：uniCloud-aliyun/cloudfunctions/notify-wechat/index.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+'use strict'
+
+const db = uniCloud.database()
+const clientsCollection = db.collection('clients')
+
+const INTERNAL_WEBHOOK = process.env.INTERNAL_WEBHOOK_URL || ''
+
+exports.main = async (event) => {
+  const {
+    lead_id, name, phone, city, interest, client_id, client_name, create_time
+  } = event
+
+  const interestMap = {
+    eye_bag: '眼袋',
+    double_eyelid: '双眼皮',
+    skin_care: '皮肤管理',
+    nose: '鼻部整形',
+    face: '面部轮廓',
+    dental: '口腔美容',
+    body: '形体塑造',
+    anti_aging: '抗衰老'
+  }
+  const interestText = (interest || []).map(i => interestMap[i] || i).join('、')
+  const timeStr = formatTime(create_time || Date.now())
+  const maskedPhone = phone ? phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : ''
+
+  if (client_id) {
+    const clientRes = await clientsCollection
+      .where({ client_id, status: 1 })
+      .limit(1)
+      .get()
+
+    if (clientRes.result.data.length > 0) {
+      const client = clientRes.result.data[0]
+      if (client.webhook_url) {
+
+---------- 第 14 页 / 共 30 页 ----------
+
+        const clientMsg = {
+          msgtype: 'markdown',
+          markdown: {
+            content: [
+              `**新线索 — ${client_name || client.client_name}**`,
+              `> 姓名：${name}`,
+              `> 电话：${maskedPhone}`,
+              `> 城市：${city}`,
+              `> 感兴趣：${interestText}`,
+              `> 时间：${timeStr}`
+            ].join('\n')
+          }
+        }
+        await sendWebhook(client.webhook_url, clientMsg)
+      }
+    }
+  }
+
+  if (INTERNAL_WEBHOOK) {
+    const internalMsg = {
+      msgtype: 'markdown',
+      markdown: {
+        content: [
+          `**新线索 — ${client_name || '未知客户'}**`,
+          `> 线索ID：${lead_id}`,
+          `> 姓名：${name}`,
+          `> 电话：${phone}`,
+          `> 城市：${city}`,
+          `> 感兴趣：${interestText}`,
+          `> 客户：${client_name || client_id || '未归属'}`,
+          `> 时间：${timeStr}`
+        ].join('\n')
+      }
+    }
+    await sendWebhook(INTERNAL_WEBHOOK, internalMsg)
+  }
+
+  return { code: 0, msg: 'ok' }
+}
+
+async function sendWebhook(url, data) {
+  try {
+    const res = await uniCloud.httpclient.request(url, {
+      method: 'POST',
+      data,
+      contentType: 'json',
+      dataType: 'json',
+      timeout: 5000
+    })
+    if (res.data?.errcode !== 0) {
+
+---------- 第 15 页 / 共 30 页 ----------
+
+      console.error('webhook failed:', res.data)
+      await new Promise(r => setTimeout(r, 5000))
+      await uniCloud.httpclient.request(url, {
+        method: 'POST',
+        data,
+        contentType: 'json',
+        dataType: 'json',
+        timeout: 5000
+      })
+    }
+  } catch (e) {
+    console.error('sendWebhook error:', e)
+  }
+}
+
+function formatTime(timestamp) {
+  const d = new Date(timestamp)
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+/* ========================================================================= */
+/* 文件：uniCloud-aliyun/cloudfunctions/check-update/index.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+'use strict'
+
+const db = uniCloud.database()
+
+exports.main = async (event) => {
+  const { platform, version_code } = event
+
+  if (!platform || !version_code) {
+    return { needUpdate: false }
+  }
+
+  const res = await db.collection('app-version')
+    .where({
+      platform,
+      status: 1
+    })
+    .orderBy('version_code', 'desc')
+    .limit(1)
+    .get()
+
+  if (res.result.data.length === 0) {
+    return { needUpdate: false }
+  }
+
+  const latest = res.result.data[0]
+
+---------- 第 16 页 / 共 30 页 ----------
+
+
+  if (latest.version_code > version_code) {
+    return {
+      needUpdate: true,
+      version: latest.version,
+      versionCode: latest.version_code,
+      updateType: latest.update_type,
+      downloadUrl: latest.download_url,
+      releaseNote: latest.release_note
+    }
+  }
+
+  return { needUpdate: false }
+}
+
+/* ========================================================================= */
+/* 文件：uniCloud-aliyun/cloudfunctions/clean-expired/index.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+'use strict'
+
+const db = uniCloud.database()
+const dbCmd = db.command
+
+exports.main = async () => {
+  const now = Date.now()
+
+  const conversionTTL = 180 * 24 * 60 * 60 * 1000
+  const conversionRes = await db.collection('conversion-logs')
+    .where({
+      create_time: dbCmd.lt(now - conversionTTL)
+    })
+    .limit(500)
+    .remove()
+
+  console.log(`cleaned conversion-logs: ${conversionRes.result.deleted} records`)
+
+  const smsTTL = 30 * 24 * 60 * 60 * 1000
+  const smsRes = await db.collection('sms-logs')
+    .where({
+      create_time: dbCmd.lt(now - smsTTL)
+    })
+    .limit(500)
+    .remove()
+
+  console.log(`cleaned sms-logs: ${smsRes.result.deleted} records`)
+
+  return {
+    conversionCleaned: conversionRes.result.deleted,
+    smsCleaned: smsRes.result.deleted
+
+---------- 第 17 页 / 共 30 页 ----------
+
+  }
+}
+
+/* ========================================================================= */
+/* 文件：uniCloud-aliyun/cloudfunctions/import-seeds/index.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+'use strict'
+
+/**
+ * 种子数据导入云函数
+ *
+ * 用途：首次部署时把 mock-data 转化而来的种子数据灌入数据库；
+ * 以及后续种子数据有变更时进行幂等更新（按 seed_id 去重）。
+ *
+ * 触发方式：
+ *   在 uniCloud 控制台手动调用，或 HBuilderX 右键云函数"上传并运行"。
+ *
+ * 安全：
+ *   本函数仅在内部运维场景调用，务必配合 SEED_IMPORT_SECRET 环境变量防止外部误触。
+ *
+ * 入参：
+ *   { secret: string, collections?: Array<'articles'|'qa'|'tips'> }
+ */
+
+const seedData = require('./seed-data.js')
+
+const db = uniCloud.database()
+
+const COLLECTION_CONFIG = {
+  articles: {
+    collection: 'articles',
+    uniqueField: 'seed_id',
+    items: seedData.articles
+  },
+  qa: {
+    collection: 'qa',
+    uniqueField: 'seed_id',
+    items: seedData.qa
+  },
+  tips: {
+    collection: 'tips',
+    uniqueField: 'seed_id',
+    items: seedData.tips
+  }
+}
+
+exports.main = async (event) => {
+  const SECRET = process.env.SEED_IMPORT_SECRET
+  if (!SECRET) {
+
+---------- 第 18 页 / 共 30 页 ----------
+
+    return { code: 500, msg: 'SEED_IMPORT_SECRET not configured' }
+  }
+  if (!event.secret || event.secret !== SECRET) {
+    return { code: 401, msg: 'invalid secret' }
+  }
+
+  const targetKeys = Array.isArray(event.collections) && event.collections.length
+    ? event.collections
+    : Object.keys(COLLECTION_CONFIG)
+
+  const summary = {}
+
+  for (const key of targetKeys) {
+    const cfg = COLLECTION_CONFIG[key]
+    if (!cfg) continue
+
+    const collection = db.collection(cfg.collection)
+    let created = 0
+    let updated = 0
+    let skipped = 0
+
+    for (const item of cfg.items) {
+      const seedId = item[cfg.uniqueField]
+      if (!seedId) {
+        skipped++
+        continue
+      }
+      const existing = await collection.where({ [cfg.uniqueField]: seedId }).limit(1).get()
+      if (existing.result.data.length > 0) {
+        const existDoc = existing.result.data[0]
+        const updatePayload = { ...item }
+        delete updatePayload.create_time
+        updatePayload.update_time = Date.now()
+        await collection.doc(existDoc._id).update(updatePayload)
+        updated++
+      } else {
+        await collection.add({
+          ...item,
+          create_time: item.create_time || Date.now(),
+          update_time: Date.now()
+        })
+        created++
+      }
+    }
+
+    summary[key] = { total: cfg.items.length, created, updated, skipped }
+  }
+
+  return {
+    code: 0,
+
+---------- 第 19 页 / 共 30 页 ----------
+
+    msg: 'ok',
+    summary
+  }
+}
+
+/* ========================================================================= */
+/* 文件：utils/content-api.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+/**
+ * 内容数据访问层
+ *
+ * 调用策略：
+ *   1. 优先通过 uniCloud.callFunction 调用 get-content 云函数读取数据库
+ *   2. 若云函数不存在、网络异常、空数据，则回落到 utils/mock-data.js 作为兜底
+ *      （兜底仅用于开发期 / 云函数未部署期 / 极端网络故障，首版上架请确保数据库有数据）
+ *
+ * 所有返回数据都已对齐统一的字段名，业务层无需关心数据来源。
+ */
+
+import {
+  articleList as localArticles,
+  qaList as localQa,
+  tipsList as localTips,
+  getArticleById as localGetArticleById,
+  getRelatedArticles as localRelatedArticles,
+  searchArticles as localSearchArticles
+} from '@/utils/mock-data.js'
+
+const CLOUD_TIMEOUT_MS = 6000
+
+async function callGetContent(data) {
+  try {
+    const p = uniCloud.callFunction({ name: 'get-content', data })
+    const res = await Promise.race([
+      p,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('cloud-timeout')), CLOUD_TIMEOUT_MS))
+    ])
+    if (res && res.result && res.result.code === 0) {
+      return res.result.data
+    }
+    return null
+  } catch (e) {
+    console.warn('[content-api] cloud failed, fallback to local:', e.message)
+    return null
+  }
+}
+
+export async function listArticles({ category = 'all', keyword = '', page = 1, pageSize = 20 } = {}) {
+  const cloud = await callGetContent({ action: 'list-articles', category, keyword, page, pageSize })
+
+---------- 第 20 页 / 共 30 页 ----------
+
+  if (cloud) return cloud
+
+  let items = localArticles.slice()
+  if (category && category !== 'all') items = items.filter((a) => a.category === category)
+  if (keyword) items = items.filter((a) => (a.title || '').includes(keyword))
+  const total = items.length
+  items = items.slice((page - 1) * pageSize, page * pageSize)
+  return { items, total, page, pageSize }
+}
+
+export async function getArticle({ id, seedId } = {}) {
+  const cloud = await callGetContent({ action: 'get-article', id, seed_id: seedId })
+  if (cloud && cloud.item) return cloud.item
+  const target = seedId || id
+  return localGetArticleById(target) || null
+}
+
+export async function getRelatedArticles({ category, excludeId, limit = 5 } = {}) {
+  const cloud = await callGetContent({
+    action: 'related-articles',
+    category,
+    exclude_id: excludeId,
+    limit
+  })
+  if (cloud && cloud.items) return cloud.items
+  return localRelatedArticles(excludeId, category).slice(0, limit)
+}
+
+export async function getHotArticles({ limit = 6 } = {}) {
+  const cloud = await callGetContent({ action: 'hot-articles', limit })
+  if (cloud && cloud.items && cloud.items.length) return cloud.items
+  // 本地兜底：按 create_time 倒序
+  return localArticles.slice().sort((a, b) => (b.create_time || 0) - (a.create_time || 0)).slice(0, limit)
+}
+
+export async function listQa({ page = 1, pageSize = 20 } = {}) {
+  const cloud = await callGetContent({ action: 'list-qa', page, pageSize })
+  if (cloud) return cloud
+  return { items: localQa.slice((page - 1) * pageSize, page * pageSize), page, pageSize }
+}
+
+export async function listTips({ page = 1, pageSize = 20 } = {}) {
+  const cloud = await callGetContent({ action: 'list-tips', page, pageSize })
+  if (cloud) return cloud
+  return { items: localTips.slice((page - 1) * pageSize, page * pageSize), page, pageSize }
+}
+
+export async function searchArticles(keyword) {
+  const cloud = await callGetContent({
+    action: 'list-articles',
+
+---------- 第 21 页 / 共 30 页 ----------
+
+    keyword,
+    page: 1,
+    pageSize: 50
+  })
+  if (cloud) return cloud.items
+  return localSearchArticles(keyword)
+}
+
+/* ========================================================================= */
+/* 文件：utils/login-hook.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+/**
+ * 登录成功后的回调处理
+ *
+ * 注意：只有真正的"新注册"用户才应回传"注册"事件给巨量引擎，
+ * 重复回传会被广告平台风控为作弊。
+ *
+ * uni-id-pages 登录成功事件会传递参数；若无法判断，退而通过本地
+ * 持久化 flag 判断是否曾经回传过。
+ */
+
+export async function onLoginSuccess(e = {}) {
+  // 仅首次新注册用户触发
+  const isNewUser = !!e.isNewUser
+  if (!isNewUser) return
+
+  const reported = uni.getStorageSync('register_conversion_reported')
+  if (reported) return
+
+  const clickId = uni.getStorageSync('click_id')
+  const clientId = uni.getStorageSync('client_id')
+  if (!clickId) return
+
+  try {
+    // #ifdef APP-PLUS
+    const info = uni.getSystemInfoSync()
+    const appType = (info.osName || info.platform || '').toLowerCase() === 'ios' ? 0 : 1
+    // #endif
+    await uniCloud.callFunction({
+      name: 'report-conversion',
+      data: {
+        event_type: 'register',
+        click_id: clickId,
+        client_id: clientId || '',
+        // #ifdef APP-PLUS
+        app_type: appType
+        // #endif
+      }
+    })
+
+---------- 第 22 页 / 共 30 页 ----------
+
+    uni.setStorageSync('register_conversion_reported', '1')
+    console.log('register conversion reported successfully')
+  } catch (err) {
+    console.error('report register conversion failed:', err)
+  }
+}
+
+/* ========================================================================= */
+/* 文件：utils/click-id.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+/**
+ * click_id 获取工具
+ *
+ * 归因来源：
+ *   1. URL Scheme / 启动参数 (query.click_id / plus.runtime.arguments)
+ *   2. Universal Link（通过启动参数一并传入）
+ *
+ * 合规说明：
+ *   - 为遵循个人信息最小化原则及避免 iOS/Android 剪贴板系统提示，
+ *     本应用不再从剪贴板读取归因参数。
+ *   - 所有归因参数仅在用户同意《隐私政策》后才会读取和上传。
+ */
+
+/**
+ * 从启动参数中解析 click_id 和 client_id
+ * @param {Object} launchOptions - uni-app 启动参数
+ * @returns {{ clickId: string|null, clientId: string|null, source: string|null }}
+ */
+export function parseFromLaunchOptions(launchOptions) {
+  const query = launchOptions?.query || {}
+
+  if (query.click_id && query.client_id) {
+    return {
+      clickId: query.click_id,
+      clientId: query.client_id,
+      source: 'url_scheme'
+    }
+  }
+
+  // #ifdef APP-PLUS
+  const args = plus.runtime.arguments
+  if (args) {
+    try {
+      const url = new URL(args)
+      const clickId = url.searchParams.get('click_id')
+      const clientId = url.searchParams.get('client_id')
+      if (clickId && clientId) {
+        return { clickId, clientId, source: 'url_scheme' }
+      }
+
+---------- 第 23 页 / 共 30 页 ----------
+
+    } catch (e) {
+      const match = args.match(/click_id=([^&]+)/)
+      const clientMatch = args.match(/client_id=([^&]+)/)
+      if (match && clientMatch) {
+        return {
+          clickId: match[1],
+          clientId: clientMatch[1],
+          source: 'url_scheme'
+        }
+      }
+    }
+  }
+  // #endif
+
+  return { clickId: null, clientId: null, source: null }
+}
+
+/**
+ * 保存 click_id 到本地缓存
+ */
+export function saveClickId({ clickId, clientId, source }) {
+  if (!clickId) return
+  uni.setStorageSync('click_id', clickId)
+  uni.setStorageSync('client_id', clientId)
+  uni.setStorageSync('click_id_source', source)
+  uni.setStorageSync('click_time', Date.now())
+}
+
+/**
+ * 获取本地缓存的 click_id
+ * click_id 有效期 24 小时，超期视为无效（巨量引擎要求）
+ */
+export function getLocalClickId() {
+  const clickTime = uni.getStorageSync('click_time') || 0
+  const EXPIRES = 24 * 60 * 60 * 1000
+  if (clickTime && Date.now() - clickTime > EXPIRES) {
+    uni.removeStorageSync('click_id')
+    uni.removeStorageSync('client_id')
+    uni.removeStorageSync('click_id_source')
+    uni.removeStorageSync('click_time')
+    return { clickId: null, clientId: null, source: null, clickTime: null }
+  }
+  return {
+    clickId: uni.getStorageSync('click_id') || null,
+    clientId: uni.getStorageSync('client_id') || null,
+    source: uni.getStorageSync('click_id_source') || null,
+    clickTime: clickTime || null
+  }
+}
+
+
+---------- 第 24 页 / 共 30 页 ----------
+
+/**
+ * 同步 click_id 到云端用户记录（仅在用户登录后调用）
+ */
+export async function syncClickIdToCloud({ clickId, clientId, source }) {
+  if (!clickId) return
+  try {
+    const db = uniCloud.database()
+    const uid = uniCloud.getCurrentUserInfo().uid
+    if (!uid) return
+    await db.collection('uni-id-users').doc(uid).update({
+      click_id: clickId,
+      client_id: clientId,
+      click_id_source: source,
+      last_click_time: Date.now()
+    })
+  } catch (e) {
+    console.error('syncClickIdToCloud failed:', e)
+  }
+}
+
+/**
+ * 回传 App 激活事件到巨量引擎
+ * 调用时机：用户同意隐私协议后（首次启动）
+ */
+export async function reportAppInstall({ clickId, clientId }) {
+  if (!clickId) return
+  const reported = uni.getStorageSync('app_install_reported')
+  if (reported) return
+  try {
+    // #ifdef APP-PLUS
+    const systemInfo = uni.getSystemInfoSync()
+    const appType = systemInfo.osName === 'ios' ? 0 : 1
+    // #endif
+    await uniCloud.callFunction({
+      name: 'report-conversion',
+      data: {
+        event_type: 'app_install',
+        click_id: clickId,
+        client_id: clientId || '',
+        // #ifdef APP-PLUS
+        app_type: appType
+        // #endif
+      }
+    })
+    uni.setStorageSync('app_install_reported', '1')
+  } catch (e) {
+    console.error('reportAppInstall failed:', e)
+  }
+}
+
+
+---------- 第 25 页 / 共 30 页 ----------
+
+/**
+ * 回传表单提交事件到巨量引擎（前端兜底，服务端已自动触发）
+ */
+export async function reportFormSubmit({ clickId, clientId }) {
+  if (!clickId) return
+  try {
+    await uniCloud.callFunction({
+      name: 'report-conversion',
+      data: {
+        event_type: 'form_submit',
+        click_id: clickId,
+        client_id: clientId || ''
+      }
+    })
+  } catch (e) {
+    console.error('reportFormSubmit failed:', e)
+  }
+}
+
+/* ========================================================================= */
+/* 文件：utils/mock-data.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+/**
+ * Mock data for the entire app (已按医疗广告合规要求清洗)
+ * -----------------------------------------------------------
+ * 清洗规则：
+ *   - 作者字段一律为 "编辑部"，禁止出现"医生 / 专家 / 大夫"字样
+ *   - 阅读 / 点赞等统计字段默认 0，由真实用户行为累计
+ *   - 图片为本地占位图，上架前请替换为自有版权图
+ *   - 已批量移除"在线留言 / 常见 / 改善 / 相对安全"等违规用语
+ * 文件由 tools/clean-mock-data.js 批量清洗生成，如需再次清洗请直接运行该脚本。
+ */
+
+
+// ============ Banner ============
+// 注意：banner 图片请替换为自有版权或授权资源，占位图仅供开发调试
+// 文案已按《医疗广告管理办法》调整，不得出现"最佳、绝对、保证"等承诺性用语
+export const bannerList = [
+  {
+    id: 'b1',
+    image: '/static/placeholder/article-cover.svg',
+    title: '了解眼袋相关科普知识',
+    link: 'form',
+    articleId: ''
+  },
+  {
+    id: 'b2',
+    image: '/static/placeholder/article-cover.svg',
+    title: '内切 vs 外切：眼袋去除术式科普',
+
+---------- 第 26 页 / 共 30 页 ----------
+
+    link: 'article',
+    articleId: 'a13'
+  },
+  {
+    id: 'b3',
+    image: '/static/placeholder/article-cover.svg',
+    title: '脂肪重置术式介绍与注意事项',
+    link: 'article',
+    articleId: 'a13b'
+  }
+]
+
+// ============ Categories ============
+export const categoryList = [
+  { value: 'all', label: '全部', icon: 'color' },
+  { value: 'double_eyelid', label: '双眼皮', icon: 'eye' },
+  { value: 'skin_care', label: '皮肤管理', icon: 'star' },
+  { value: 'nose', label: '鼻部整形', icon: 'heart' },
+  { value: 'face', label: '面部轮廓', icon: 'person' },
+  { value: 'dental', label: '口腔美容', icon: 'smile' },
+  { value: 'body', label: '形体塑造', icon: 'fire' },
+  { value: 'anti_aging', label: '抗衰老', icon: 'clock' },
+  { value: 'eye_bag', label: '眼袋', icon: 'eye' }
+]
+
+// ============ Articles ============
+export const articleList = [
+  {
+    _id: 'a1',
+    title: '双眼皮手术前必读：全切、埋线、韩式三点怎么选？',
+    summary: '双眼皮手术是最常见的眼部整形项目之一，不同术式适合不同眼型。本文详细解析三种主流术式的优缺点，帮你做出较适合的选择。',
+    cover_image: '/static/placeholder/article-cover.svg',
+    category: 'double_eyelid',
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
+    create_time: Date.now() - 86400000,
+    content: `<h2>什么是双眼皮手术？</h2>
+<p>双眼皮手术（重睑术）是通过手术方式在上眼睑形成双眼皮皱褶的美容手术。目前主流的术式有三种：全切双眼皮、埋线双眼皮和韩式三点定位。</p>
+
+<h2>一、全切双眼皮</h2>
+<p><strong>适合人群：</strong>上眼睑皮肤松弛、脂肪较多、肿眼泡的求美者。</p>
+<p><strong>优点：</strong></p>
+<ul>
+<li>效果持久，基本不会回弹</li>
+<li>可同时去除多余皮肤和脂肪</li>
+<li>适用范围广，几乎所有眼型都可以做</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+
+---------- 第 27 页 / 共 30 页 ----------
+
+<li>恢复期较长，约需1-3个月</li>
+<li>早期疤痕较明显</li>
+<li>如果不满意，修复难度较大</li>
+</ul>
+<p><strong>恢复时间：</strong>术后7天拆线，1个月消肿明显，3-6个月基本自然。</p>
+
+<h2>二、埋线双眼皮</h2>
+<p><strong>适合人群：</strong>眼皮薄、脂肪少、皮肤紧致的年轻求美者。</p>
+<p><strong>优点：</strong></p>
+<ul>
+<li>创伤小，恢复快</li>
+<li>不留明显疤痕</li>
+<li>效果不满意可取出</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>维持时间有限，可能3-5年后松脱</li>
+<li>不能去除多余皮肤和脂肪</li>
+<li>不适合眼皮条件差的人</li>
+</ul>
+<p><strong>恢复时间：</strong>约1-2周基本消肿，1个月自然。</p>
+
+<h2>三、韩式三点</h2>
+<p><strong>适合人群：</strong>眼部条件中等，想要自然效果的求美者。</p>
+<p><strong>优点：</strong></p>
+<ul>
+<li>介于全切和埋线之间</li>
+<li>可适当去除脂肪</li>
+<li>恢复比全切快</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>不能去除多余皮肤</li>
+<li>效果持久性不如全切</li>
+</ul>
+
+<h2>如何选择？</h2>
+<p>选择术式时需要综合考虑：</p>
+<ol>
+<li><strong>眼部基础条件：</strong>皮肤薄紧选埋线，松弛有脂肪选全切</li>
+<li><strong>对恢复期的接受度：</strong>急于恢复选埋线，不怕等选全切</li>
+<li><strong>对持久性的要求：</strong>追求长期效果选全切</li>
+<li><strong>预算：</strong>全切 > 韩式三点 > 埋线</li>
+</ol>
+
+<h2>术前注意事项</h2>
+<ul>
+<li>术前两周停用阿司匹林等抗凝药物</li>
+<li>女性避开月经期</li>
+<li>术前做好眼部检查，排除干眼症等问题</li>
+
+---------- 第 28 页 / 共 30 页 ----------
+
+<li>与医生充分沟通期望效果</li>
+</ul>
+
+<p><em>本文仅供科普参考，具体方案请咨询执业医师。</em></p>`
+  },
+  {
+    _id: 'a2',
+    title: '埋线双眼皮能维持多久？术后护理全攻略',
+    summary: '埋线双眼皮以创伤小、恢复快著称，但很多人担心维持时间。本文从术后护理角度，教你如何让效果更持久。',
+    cover_image: '/static/placeholder/article-cover.svg',
+    category: 'double_eyelid',
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
+    create_time: Date.now() - 172800000,
+    content: `<h2>埋线双眼皮的维持时间</h2>
+<p>一般来说，埋线双眼皮的维持时间在3-7年不等，具体取决于个人体质、眼部条件和术后护理。部分人可以维持更长时间，甚至终身不变。</p>
+
+<h2>影响维持时间的因素</h2>
+<ol>
+<li><strong>眼皮厚度：</strong>眼皮越薄，维持时间越长</li>
+<li><strong>埋线技术：</strong>连续埋线比间断埋线更牢固</li>
+<li><strong>术后护理：</strong>正确护理可以延长维持时间</li>
+<li><strong>个人习惯：</strong>频繁揉眼会加速松脱</li>
+</ol>
+
+<h2>术后护理要点</h2>
+<h3>术后1-3天</h3>
+<ul>
+<li>冷敷消肿：每次15-20分钟，每天3-4次</li>
+<li>保持伤口清洁干燥</li>
+<li>睡觉时适当垫高枕头</li>
+</ul>
+
+<h3>术后4-7天</h3>
+<ul>
+<li>可以改为热敷，促进血液循环</li>
+<li>开始轻柔清洁眼部</li>
+<li>避免剧烈运动</li>
+</ul>
+
+<h3>术后1-3个月</h3>
+<ul>
+<li>避免揉搓眼睛</li>
+<li>不要佩戴美瞳或隐形眼镜</li>
+<li>注意防晒，防止色素沉着</li>
+</ul>
+
+<p><em>如果发现双眼皮变浅或消失，不要着急，可以咨询医生是否需要补做。</em></p>`
+  },
+
+---------- 第 29 页 / 共 30 页 ----------
+
+  {
+    _id: 'a2b',
+    title: '开眼角手术科普：内眼角、外眼角怎么开？有什么风险？',
+    summary: '开眼角是让眼睛看起来更大更有神的手术，分为内眼角开大和外眼角延长两种，适合不同问题的眼型。',
+    cover_image: '/static/placeholder/article-cover.svg',
+    category: 'double_eyelid',
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
+    create_time: Date.now() - 310000000,
+    content: `<h2>为什么要开眼角？</h2>
+<p>很多人双眼皮手术后感觉眼睛还是不够大，这往往不是双眼皮的问题，而是眼裂本身偏短偏窄。开眼角手术通过延长眼裂横向宽度，让眼睛从视觉上变大。</p>
+
+<h2>内眼角开大（内眦赘皮矫正）</h2>
+<p>东亚人普遍存在内眦赘皮，即内眼角有皮肤遮盖泪阜，表现为"距离宽、眼睛小、没精神"。</p>
+<p><strong>手术方式：</strong>通过Z成形、W成形等方式切除内眦赘皮，暴露泪阜，使眼距视觉上缩短，眼睛变大。</p>
+<p><strong>效果：</strong>可使眼裂内侧延长2-4mm，配合双眼皮效果非常显著。</p>
+<p><strong>疤痕：</strong>内眼角皮肤薄，是疤痕体质的高发区，术前需评估疤痕风险。</p>
+
+<h2>外眼角延长（外眦开大）</h2>
+<p>通过延长眼裂外侧，让眼睛横向更长，形成"狐媚眼"效果。</p>
+<p><strong>注意：</strong>外眼角手术难度较大，恢复后可能有一定程度回缩，效果相对内眼角手术不稳定，选择时需谨慎。</p>
+
+<h2>开眼角 + 双眼皮的黄金组合</h2>
+<p>很多求美者会同时进行双眼皮和开眼角手术，两者配合可以达到眼睛横向延长、纵向变大的双重效果，但需要医生在设计时统筹考虑比例。</p>
+
+<h2>不适合开眼角的人群</h2>
+<ul>
+<li>疤痕体质（内眼角疤痕增生风险大）</li>
+<li>眼距已经偏窄的人（开内眼角会让眼距更窄）</li>
+<li>有干眼症的人</li>
+</ul>
+
+<p><em>开眼角是精细手术，对医生的解剖知识和审美要求都很高，请充分了解风险后再做决定。</em></p>`
+  },
+  {
+    _id: 'a2c',
+    title: '双眼皮修复：失败案例的常见原因和解决方案',
+    summary: '双眼皮手术效果不满意怎么办？宽窄不一、疤痕明显、三眼皮……这些问题都能修复吗？',
+    cover_image: '/static/placeholder/article-cover.svg',
+    category: 'double_eyelid',
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
+    create_time: Date.now() - 430000000,
+    content: `<h2>双眼皮手术常见"失败"表现</h2>
+<ul>
+<li><strong>双侧不对称：</strong>一高一低，宽窄不同</li>
+<li><strong>三眼皮：</strong>出现多条皱褶</li>
+<li><strong>疤痕过于明显：</strong>全切后留下明显红色或增生疤痕</li>
+
+---------- 第 30 页 / 共 30 页 ----------

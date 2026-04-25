@@ -58,7 +58,7 @@
         <text v-if="formData.consent" class="checkbox-tick">✓</text>
       </view>
       <text class="consent-text">
-        我已阅读并同意<text class="consent-link" @click.stop="openPrivacy">《隐私政策》</text>，授权平台为我匹配专业咨询服务
+        我已阅读并同意<text class="consent-link" @click.stop="openPrivacy">《隐私政策》</text>与<text class="consent-link" @click.stop="openAgreement">《用户协议》</text>，同意将以上信息共享给合作医疗机构以便为我提供后续服务
       </text>
     </view>
 
@@ -68,10 +68,11 @@
       :disabled="submitting"
       @click="handleSubmit"
     >
-      {{ submitting ? '提交中...' : '提交咨询' }}
+      {{ submitting ? '提交中...' : '提交留言' }}
     </button>
 
-    <text class="tip-text">提交后我们将在 24 小时内联系您</text>
+    <text class="tip-text">提交后我们将整理相关科普资料并与您联系</text>
+    <text class="tip-disclaimer">本平台不提供诊疗服务，相关建议请以合作医疗机构面诊为准</text>
 
     <!-- 滑动验证码 -->
     <captcha ref="captchaRef" @success="onCaptchaSuccess" />
@@ -160,10 +161,21 @@ function openPrivacy() {
   uni.navigateTo({ url: '/pages/webview/index?type=privacy' })
 }
 
+function openAgreement() {
+  uni.navigateTo({ url: '/pages/webview/index?type=agreement' })
+}
+
 function handleSubmit() {
+  if (uni.getStorageSync('privacy_basic_mode')) {
+    uni.showModal({
+      title: '温馨提示',
+      content: '您尚未同意《隐私政策》，无法使用留言功能。',
+      showCancel: false
+    })
+    return
+  }
   if (!validate()) return
   if (submitting.value) return
-  // 弹出验证码，验证通过后再提交
   captchaRef.value?.open()
 }
 
@@ -183,15 +195,18 @@ async function onCaptchaSuccess() {
       }
     })
 
-    if (res.result.code === 0) {
+    if (res.result && res.result.code === 0) {
       uni.redirectTo({ url: '/pages/result/index' })
     } else {
-      uni.showToast({ title: res.result.msg || '提交失败', icon: 'none' })
+      uni.showToast({ title: (res.result && res.result.msg) || '提交失败，请稍后重试', icon: 'none' })
     }
   } catch (e) {
     console.error('submit-lead failed:', e)
-    // 云函数未部署时降级为本地mock，保证流程跑通
-    uni.redirectTo({ url: '/pages/result/index' })
+    uni.showToast({
+      title: '网络异常，提交失败，请检查网络后重试',
+      icon: 'none',
+      duration: 2500
+    })
   } finally {
     submitting.value = false
   }
@@ -305,5 +320,14 @@ async function onCaptchaSuccess() {
   font-size: 24rpx;
   color: #999;
   margin-top: 20rpx;
+}
+.tip-disclaimer {
+  display: block;
+  text-align: center;
+  font-size: 22rpx;
+  color: #bbb;
+  margin-top: 10rpx;
+  padding: 0 40rpx;
+  line-height: 1.6;
 }
 </style>

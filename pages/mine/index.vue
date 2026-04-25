@@ -26,10 +26,6 @@
         <text class="stat-num">{{ stats.likes }}</text>
         <text class="stat-label">点赞</text>
       </view>
-      <view class="stat-item" @click="showLeads">
-        <text class="stat-num">{{ stats.consults }}</text>
-        <text class="stat-label">咨询</text>
-      </view>
     </view>
 
     <!-- 功能菜单 -->
@@ -46,13 +42,6 @@
         <view class="menu-left">
           <text class="menu-icon-text">&#x1F4D6;</text>
           <text class="menu-text">浏览记录</text>
-        </view>
-        <text class="menu-arrow">›</text>
-      </view>
-      <view class="menu-item" @click="showLeads">
-        <view class="menu-left">
-          <text class="menu-icon-text">&#x1F4CB;</text>
-          <text class="menu-text">咨询记录</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -83,30 +72,15 @@
       </view>
     </view>
 
-    <!-- 咨询记录弹窗 -->
-    <uni-popup ref="leadsPopupRef" type="bottom">
-      <view class="leads-popup">
-        <view class="leads-header">
-          <text class="leads-title">咨询记录</text>
-          <text class="leads-close" @click="closeLeads">&#x2715;</text>
-        </view>
-        <view class="leads-empty">
-          <text>暂无咨询记录</text>
-        </view>
-      </view>
-    </uni-popup>
-
     <!-- 悬浮咨询按钮 -->
     <float-consult />
   </view>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { reactive } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import floatConsult from '@/components/float-consult/float-consult.vue'
-
-const leadsPopupRef = ref(null)
 
 const userInfo = reactive({
   nickname: '',
@@ -117,8 +91,7 @@ const userInfo = reactive({
 const stats = reactive({
   favorites: 0,
   history: 0,
-  likes: 0,
-  consults: 0
+  likes: 0
 })
 
 onShow(() => {
@@ -147,14 +120,6 @@ function goLogin() {
 
 function goPage(url) {
   uni.navigateTo({ url })
-}
-
-function showLeads() {
-  leadsPopupRef.value?.open()
-}
-
-function closeLeads() {
-  leadsPopupRef.value?.close()
 }
 </script>
 
@@ -254,33 +219,5 @@ function closeLeads() {
 .menu-arrow {
   font-size: 36rpx;
   color: #ccc;
-}
-.leads-popup {
-  background-color: #fff;
-  border-radius: 24rpx 24rpx 0 0;
-  padding: 30rpx;
-  max-height: 70vh;
-}
-.leads-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-.leads-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-}
-.leads-close {
-  font-size: 36rpx;
-  color: #999;
-  padding: 10rpx;
-}
-.leads-empty {
-  text-align: center;
-  padding: 60rpx;
-  color: #999;
-  font-size: 28rpx;
 }
 </style>

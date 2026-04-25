@@ -18,13 +18,14 @@
 <script setup>
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { getArticleById } from '@/utils/mock-data.js'
+import { getArticle } from '@/utils/content-api.js'
 
 const list = ref([])
 
-onShow(() => {
+onShow(async () => {
   const ids = uni.getStorageSync('my_favorites') || []
-  list.value = ids.map(id => getArticleById(id)).filter(Boolean)
+  const results = await Promise.all(ids.map((id) => getArticle({ id, seedId: id })))
+  list.value = results.filter(Boolean)
 })
 
 function goDetail(id) {

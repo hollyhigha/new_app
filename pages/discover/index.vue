@@ -15,13 +15,13 @@
 
     <!-- 知识百科 -->
     <view v-if="currentTab === 'encyclopedia'" class="tab-content">
-      <!-- 眼袋自测入口 -->
+      <!-- 眼袋科普小测 -->
       <view class="quiz-banner" @click="startQuiz">
         <view class="quiz-banner-left">
-          <text class="quiz-banner-title">👁 测测你的眼袋类型</text>
-          <text class="quiz-banner-desc">3个问题，30秒，找到最适合你的方案</text>
+          <text class="quiz-banner-title">👁 眼袋类型科普小测</text>
+          <text class="quiz-banner-desc">3 个问题，了解眼袋相关知识（非诊疗建议）</text>
         </view>
-        <text class="quiz-banner-btn">开始测试 →</text>
+        <text class="quiz-banner-btn">开始了解 →</text>
       </view>
 
       <view class="wiki-grid">
@@ -46,9 +46,10 @@
           <text class="quiz-result-title">{{ quizResult.title }}</text>
           <text class="quiz-result-desc">{{ quizResult.desc }}</text>
           <view class="quiz-result-btns">
-            <view class="quiz-btn-consult" @click="goFormFromQuiz">免费咨询专业医生</view>
+            <view class="quiz-btn-consult" @click="goFormFromQuiz">查看更多相关科普</view>
             <view class="quiz-btn-close" @click="quizVisible = false">知道了</view>
           </view>
+          <text class="quiz-result-tip">以上内容仅供科普参考，具体情况请以执业医师面诊结果为准。</text>
         </view>
         <!-- 问题页 -->
         <view v-else>
@@ -71,7 +72,7 @@
 
     <!-- 热门问答 -->
     <view v-if="currentTab === 'qa'" class="tab-content">
-      <view v-for="qa in qaList" :key="qa.id" class="qa-card" @click="goQADetail(qa)">
+      <view v-for="qa in qaList" :key="qa._id || qa.seed_id" class="qa-card" @click="goQADetail(qa)">
         <view class="qa-header">
           <text class="qa-q-icon">Q</text>
           <text class="qa-question">{{ qa.question }}</text>
@@ -82,22 +83,23 @@
         </view>
         <view class="qa-footer">
           <text class="qa-category">{{ getCategoryLabel(qa.category) }}</text>
-          <view class="qa-like">
-            <text class="qa-like-icon">&#x1F44D;</text>
-            <text class="qa-like-count">{{ qa.like_count }}</text>
-          </view>
+          <text class="qa-answerer">{{ qa.answerer_name || '编辑部' }}</text>
         </view>
       </view>
 
+      <view v-if="!qaList.length" class="empty-tip">
+        <text>暂无问答内容</text>
+      </view>
+
       <view class="consult-banner" @click="goForm">
-        <text class="consult-banner-text">还有疑问？专业医师在线解答</text>
-        <text class="consult-banner-btn">免费咨询</text>
+        <text class="consult-banner-text">想了解更多？留下您的信息，我们将整理相关科普资料</text>
+        <text class="consult-banner-btn">在线留言</text>
       </view>
     </view>
 
     <!-- 美丽贴士 -->
     <view v-if="currentTab === 'tips'" class="tab-content">
-      <view v-for="(tip, index) in tipsList" :key="tip.id" class="tip-card">
+      <view v-for="(tip, index) in tipsList" :key="tip._id || tip.seed_id || index" class="tip-card">
         <view class="tip-number">
           <text class="tip-num-text">{{ String(index + 1).padStart(2, '0') }}</text>
         </view>
@@ -107,42 +109,13 @@
         </view>
       </view>
 
-      <view class="consult-banner" @click="goForm">
-        <text class="consult-banner-text">想获取个性化护肤建议？</text>
-        <text class="consult-banner-btn">免费咨询</text>
-      </view>
-    </view>
-
-    <!-- 案例展示 -->
-    <view v-if="currentTab === 'cases'" class="tab-content">
-      <view class="cases-notice">
-        <text class="cases-notice-text">以下案例仅供参考，效果因人而异，请以面诊结果为准</text>
-      </view>
-      <view v-for="item in caseList" :key="item.id" class="case-card">
-        <view class="case-header">
-          <text class="case-title">{{ item.title }}</text>
-          <text class="case-category">{{ getCategoryLabel(item.category) }}</text>
-        </view>
-        <text class="case-desc">{{ item.description }}</text>
-        <view class="case-images">
-          <view class="case-img-placeholder">
-            <text class="case-img-label">术前</text>
-          </view>
-          <view class="case-arrow">
-            <text>→</text>
-          </view>
-          <view class="case-img-placeholder after">
-            <text class="case-img-label">术后</text>
-          </view>
-        </view>
-        <view class="case-tags">
-          <text v-for="tag in item.tags" :key="tag" class="case-tag">{{ tag }}</text>
-        </view>
+      <view v-if="!tipsList.length" class="empty-tip">
+        <text>暂无贴士内容</text>
       </view>
 
       <view class="consult-banner" @click="goForm">
-        <text class="consult-banner-text">想了解更多案例？预约免费面诊</text>
-        <text class="consult-banner-btn">立即咨询</text>
+        <text class="consult-banner-text">想了解更多护肤科普？留下您的信息</text>
+        <text class="consult-banner-btn">在线留言</text>
       </view>
     </view>
 
@@ -152,18 +125,23 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import floatConsult from '@/components/float-consult/float-consult.vue'
-import { qaList, tipsList, caseList, articleList } from '@/utils/mock-data.js'
+import { listQa, listTips, listArticles } from '@/utils/content-api.js'
 
+// 注意：首版"案例展示"tab 已依据《医疗广告管理办法》第七条暂时下线
+// （禁止以治疗前后对比形式宣传医疗广告）。待获得对应广告审查证明后再开放。
 const tabs = [
   { label: '知识百科', value: 'encyclopedia' },
   { label: '热门问答', value: 'qa' },
-  { label: '美丽贴士', value: 'tips' },
-  { label: '案例展示', value: 'cases' }
+  { label: '美丽贴士', value: 'tips' }
 ]
 
 const currentTab = ref('encyclopedia')
+const qaList = ref([])
+const tipsList = ref([])
+const qaLoaded = ref(false)
+const tipsLoaded = ref(false)
 
 const categoryMap = {
   eye_bag: '眼袋',
@@ -177,53 +155,59 @@ const categoryMap = {
 }
 
 const wikiCategories = [
-  {
-    value: 'eye_bag', label: '眼袋', emoji: '👁', hot: true,
-    desc: '内切/外切/无创祛眼袋',
-    count: articleList.filter(a => a.category === 'eye_bag').length
-  },
-  {
-    value: 'double_eyelid', label: '双眼皮', emoji: '✂️',
-    desc: '全切/埋线/开眼角',
-    count: articleList.filter(a => a.category === 'double_eyelid').length
-  },
-  {
-    value: 'skin_care', label: '皮肤管理', emoji: '✨',
-    desc: '光子嫩肤/刷酸/补水',
-    count: articleList.filter(a => a.category === 'skin_care').length
-  },
-  {
-    value: 'nose', label: '鼻部整形', emoji: '👃',
-    desc: '隆鼻/鼻综合/鼻翼缩小',
-    count: articleList.filter(a => a.category === 'nose').length
-  },
-  {
-    value: 'face', label: '面部轮廓', emoji: '💎',
-    desc: '瘦脸针/吸脂/下颌角',
-    count: articleList.filter(a => a.category === 'face').length
-  },
-  {
-    value: 'dental', label: '口腔美容', emoji: '😁',
-    desc: '牙齿矫正/贴面/美白',
-    count: articleList.filter(a => a.category === 'dental').length
-  },
-  {
-    value: 'anti_aging', label: '抗衰老', emoji: '🌿',
-    desc: '热玛吉/超声刀/水光',
-    count: articleList.filter(a => a.category === 'anti_aging').length
-  }
+  { value: 'eye_bag', label: '眼袋', emoji: '👁', desc: '内切/外切/无创祛眼袋' },
+  { value: 'double_eyelid', label: '双眼皮', emoji: '✂️', desc: '全切/埋线/开眼角' },
+  { value: 'skin_care', label: '皮肤管理', emoji: '✨', desc: '光子嫩肤/刷酸/补水' },
+  { value: 'nose', label: '鼻部整形', emoji: '👃', desc: '隆鼻/鼻综合/鼻翼缩小' },
+  { value: 'face', label: '面部轮廓', emoji: '💎', desc: '瘦脸针/吸脂/下颌角' },
+  { value: 'dental', label: '口腔美容', emoji: '😁', desc: '牙齿矫正/贴面/美白' },
+  { value: 'anti_aging', label: '抗衰老', emoji: '🌿', desc: '热玛吉/超声刀/水光' }
 ]
 
 function getCategoryLabel(value) {
   return categoryMap[value] || value
 }
 
-function goCategory(category) {
-  const first = articleList.find(a => a.category === category)
+async function goCategory(category) {
+  const { items } = await listArticles({ category, page: 1, pageSize: 1 })
+  const first = items && items[0]
   if (first) {
-    uni.navigateTo({ url: `/pages/article/detail?id=${first._id}` })
+    const targetId = first._id || first.seed_id
+    uni.navigateTo({ url: `/pages/article/detail?id=${targetId}` })
+  } else {
+    uni.showToast({ title: '该分类暂无科普内容', icon: 'none' })
   }
 }
+
+async function loadQa() {
+  if (qaLoaded.value) return
+  try {
+    const { items } = await listQa({ page: 1, pageSize: 30 })
+    qaList.value = items || []
+  } finally {
+    qaLoaded.value = true
+  }
+}
+
+async function loadTips() {
+  if (tipsLoaded.value) return
+  try {
+    const { items } = await listTips({ page: 1, pageSize: 30 })
+    tipsList.value = items || []
+  } finally {
+    tipsLoaded.value = true
+  }
+}
+
+watch(currentTab, (tab) => {
+  if (tab === 'qa') loadQa()
+  else if (tab === 'tips') loadTips()
+})
+
+onMounted(() => {
+  // 预加载问答，切换时更顺滑
+  loadQa()
+})
 
 function goQADetail(qa) {
   // Show the answer in a simple modal
@@ -276,28 +260,28 @@ const quizResult = computed(() => {
   if (q3 === 'noninvasive') {
     return {
       emoji: '✨',
-      title: '无创方案适合你',
-      desc: '你倾向于无创改善。眼周热玛吉或射频微针可以收紧皮肤、改善轻中度眼袋，无需手术，恢复快。建议咨询医生评估眼袋严重程度后制定方案。'
+      title: '了解一下：无创改善方向的科普',
+      desc: '您倾向无创方式。相关科普资料中介绍了射频类、光电类等非手术方案的原理与适用范围。具体是否适合个体情况，需由执业医师面诊评估。'
     }
   }
   if (q1 === 'fat' && q2 === 'good') {
     return {
       emoji: '🎯',
-      title: '内切去眼袋最适合你',
-      desc: '你的眼袋以脂肪膨出为主，皮肤弹性好。内切手术从结膜面进入，皮肤表面零疤痕，恢复快，是最适合你的方案。'
+      title: '了解一下：内切术式相关科普',
+      desc: '您的选项偏向脂肪型眼袋、皮肤弹性较好的特征。科普资料中介绍了经结膜入路术式的原理与注意事项，仅供了解，不构成诊疗建议。'
     }
   }
   if (q1 === 'skin' || q2 === 'loose') {
     return {
       emoji: '💡',
-      title: '外切去眼袋更适合你',
-      desc: '你的眼袋有明显皮肤松弛成分。外切手术可以同时去除多余皮肤和脂肪，改善更全面。建议咨询医生面诊评估，同时了解脂肪重置方案。'
+      title: '了解一下：外切与皮肤松弛相关科普',
+      desc: '您的选项与皮肤松弛相关。科普资料介绍了外切术式、脂肪重置等常见改善方向的基本原理与适用人群，具体需面诊评估。'
     }
   }
   return {
     emoji: '👨‍⚕️',
     title: '建议面诊专业评估',
-    desc: '你的情况需要医生结合面部条件综合判断，内切、外切或无创方案都有可能适合你。免费面诊可以帮你找到最适合的方案。'
+    desc: '眼袋类型需由执业医师结合面部条件综合判断。您可以在"知识百科"继续阅读相关科普内容，或前往具备资质的医疗机构面诊咨询。'
   }
 })
 
@@ -501,6 +485,13 @@ function goFormFromQuiz() {
   padding: 24rpx;
   border-radius: 16rpx;
 }
+.quiz-result-tip {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 22rpx;
+  color: #999;
+  text-align: center;
+}
 
 /* Wiki grid */
 .wiki-grid {
@@ -623,17 +614,15 @@ function goFormFromQuiz() {
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
 }
-.qa-like {
-  display: flex;
-  align-items: center;
-}
-.qa-like-icon {
-  font-size: 24rpx;
-  margin-right: 6rpx;
-}
-.qa-like-count {
+.qa-answerer {
   font-size: 22rpx;
   color: #999;
+}
+.empty-tip {
+  text-align: center;
+  padding: 80rpx 0;
+  color: #bbb;
+  font-size: 26rpx;
 }
 
 /* Tips */

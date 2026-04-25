@@ -30,7 +30,9 @@
       </view>
     </view>
 
-    <button class="submit-btn" @click="handleSubmit">提交反馈</button>
+    <button class="submit-btn" :disabled="submitting" @click="handleSubmit">
+      {{ submitting ? '提交中...' : '提交反馈' }}
+    </button>
   </view>
 </template>
 
@@ -47,23 +49,68 @@ const types = [
 const feedbackType = ref('suggest')
 const content = ref('')
 const contact = ref('')
+const submitting = ref(false)
 
-function handleSubmit() {
-  if (content.value.length < 10) {
+function getPlatform() {
+  try {
+    const info = uni.getSystemInfoSync()
+    const name = (info.osName || info.platform || '').toLowerCase()
+    if (name.includes('ios')) return 'ios'
+    if (name.includes('android')) return 'android'
+    // #ifdef MP-WEIXIN
+    return 'mp-weixin'
+    // #endif
+    // #ifdef H5
+    return 'h5'
+    // #endif
+    return 'other'
+  } catch (e) {
+    return 'other'
+  }
+}
+
+async function handleSubmit() {
+  if (submitting.value) return
+  if (content.value.trim().length < 10) {
     uni.showToast({ title: '请至少输入10个字', icon: 'none' })
     return
   }
-  // Mock submit
-  uni.showModal({
-    title: '感谢反馈',
-    content: '您的反馈已收到，我们会认真处理！',
-    showCancel: false,
-    success() {
-      content.value = ''
-      contact.value = ''
-      uni.navigateBack()
+  submitting.value = true
+  try {
+    const info = uni.getSystemInfoSync()
+    const res = await uniCloud.callFunction({
+      name: 'submit-feedback',
+      data: {
+        type: feedbackType.value,
+        content: content.value.trim(),
+        contact: contact.value.trim(),
+        platform: getPlatform(),
+        app_version: info.appVersion || ''
+      }
+    })
+    if (res.result && res.result.code === 0) {
+      uni.showModal({
+        title: '感谢反馈',
+        content: '您的反馈已收到，我们会认真处理！',
+        showCancel: false,
+        success() {
+          content.value = ''
+          contact.value = ''
+          uni.navigateBack()
+        }
+      })
+    } else {
+      uni.showToast({
+        title: (res.result && res.result.msg) || '提交失败，请稍后重试',
+        icon: 'none'
+      })
     }
-  })
+  } catch (e) {
+    console.error('submit-feedback failed:', e)
+    uni.showToast({ title: '网络异常，提交失败', icon: 'none' })
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -140,5 +187,8 @@ function handleSubmit() {
   line-height: 88rpx;
   font-size: 32rpx;
   font-weight: bold;
+}
+.submit-btn[disabled] {
+  opacity: 0.6;
 }
 </style>

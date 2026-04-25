@@ -25,21 +25,21 @@
 
     <!-- 搜索结果 -->
     <view v-if="hasSearched" class="result-section">
-      <text class="result-count">找到 {{ results.length }} 篇相关文章</text>
-      <view v-for="article in results" :key="article._id" class="result-item" @click="goDetail(article._id)">
+      <text class="result-count">找到 {{ results.length }} 篇相关内容</text>
+      <view v-for="article in results" :key="article._id || article.seed_id" class="result-item" @click="goDetail(article)">
         <text class="result-title">{{ article.title }}</text>
         <text class="result-summary">{{ article.summary }}</text>
         <view class="result-meta">
-          <text>{{ article.author }}</text>
-          <text class="meta-sep">|</text>
-          <text>{{ formatCount(article.read_count) }}阅读</text>
+          <text>{{ article.author || '编辑部' }}</text>
+          <text v-if="article.read_count" class="meta-sep">|</text>
+          <text v-if="article.read_count">{{ formatCount(article.read_count) }}阅读</text>
         </view>
       </view>
       <view v-if="results.length === 0" class="empty">
         <text class="empty-text">未找到相关内容</text>
-        <text class="empty-hint">换个关键词试试，或直接咨询专业医师</text>
+        <text class="empty-hint">换个关键词试试，或留下联系方式让我们整理相关资料</text>
         <view class="empty-btn" @click="goForm">
-          <text class="empty-btn-text">免费咨询</text>
+          <text class="empty-btn-text">在线留言</text>
         </view>
       </view>
     </view>
@@ -48,16 +48,27 @@
 
 <script setup>
 import { ref } from 'vue'
-import { hotSearches, searchArticles, formatCount } from '@/utils/mock-data.js'
+import { hotSearches, formatCount } from '@/utils/mock-data.js'
+import { searchArticles } from '@/utils/content-api.js'
 
 const keyword = ref('')
 const results = ref([])
 const hasSearched = ref(false)
+const searching = ref(false)
 
-function doSearch() {
-  if (!keyword.value.trim()) return
+async function doSearch() {
+  const k = keyword.value.trim()
+  if (!k || searching.value) return
+  searching.value = true
   hasSearched.value = true
-  results.value = searchArticles(keyword.value.trim())
+  try {
+    const items = await searchArticles(k)
+    results.value = items || []
+  } catch (e) {
+    results.value = []
+  } finally {
+    searching.value = false
+  }
 }
 
 function quickSearch(tag) {
@@ -65,7 +76,8 @@ function quickSearch(tag) {
   doSearch()
 }
 
-function goDetail(id) {
+function goDetail(article) {
+  const id = article._id || article.seed_id
   uni.navigateTo({ url: `/pages/article/detail?id=${id}` })
 }
 

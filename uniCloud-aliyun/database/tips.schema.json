@@ -1,0 +1,43 @@
+{
+  "bsonType": "object",
+  "required": ["title", "content"],
+  "permission": {
+    "read": "doc.status == 1",
+    "create": "'CREATE_TIP' in auth.permission",
+    "update": "'UPDATE_TIP' in auth.permission",
+    "delete": "'DELETE_TIP' in auth.permission"
+  },
+  "properties": {
+    "_id": { "description": "自动生成" },
+    "seed_id": {
+      "bsonType": "string",
+      "description": "种子业务 ID（幂等导入）"
+    },
+    "title": {
+      "bsonType": "string",
+      "description": "贴士标题",
+      "trim": "both"
+    },
+    "content": {
+      "bsonType": "string",
+      "description": "贴士正文"
+    },
+    "category": {
+      "bsonType": "string",
+      "description": "分类"
+    },
+    "sort_order": {
+      "bsonType": "int",
+      "defaultValue": 0
+    },
+    "status": {
+      "bsonType": "int",
+      "defaultValue": 1,
+      "enum": [0, 1]
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "forceDefaultValue": { "$env": "now" }
+    }
+  }
+}

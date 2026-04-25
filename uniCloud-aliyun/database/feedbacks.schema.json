@@ -1,0 +1,69 @@
+{
+  "bsonType": "object",
+  "required": ["type", "content"],
+  "permission": {
+    "read": "'READ_FEEDBACKS' in auth.permission",
+    "create": true,
+    "update": "'UPDATE_FEEDBACKS' in auth.permission",
+    "delete": "'DELETE_FEEDBACKS' in auth.permission"
+  },
+  "properties": {
+    "_id": { "description": "反馈ID" },
+    "user_id": {
+      "bsonType": "string",
+      "description": "关联用户ID（未登录可为空）",
+      "foreignKey": "uni-id-users._id"
+    },
+    "type": {
+      "bsonType": "string",
+      "description": "反馈类型",
+      "enum": ["suggest", "error", "problem", "other"]
+    },
+    "content": {
+      "bsonType": "string",
+      "description": "反馈内容",
+      "minLength": 10,
+      "maxLength": 500,
+      "trim": "both"
+    },
+    "contact": {
+      "bsonType": "string",
+      "description": "联系方式（选填）",
+      "maxLength": 100
+    },
+    "platform": {
+      "bsonType": "string",
+      "description": "提交平台",
+      "enum": ["ios", "android", "h5", "mp-weixin", "other"]
+    },
+    "app_version": {
+      "bsonType": "string",
+      "description": "App 版本号"
+    },
+    "submit_ip": {
+      "bsonType": "string",
+      "description": "提交请求 IP"
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "处理状态 0待处理 1已处理 2忽略",
+      "defaultValue": 0,
+      "enum": [0, 1, 2]
+    },
+    "reply": {
+      "bsonType": "string",
+      "description": "回复内容",
+      "defaultValue": ""
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": { "$env": "now" }
+    },
+    "update_time": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": { "$env": "now" }
+    }
+  }
+}

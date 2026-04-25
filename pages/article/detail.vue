@@ -4,8 +4,8 @@
       <text class="article-title">{{ article.title }}</text>
       <view class="article-meta">
         <text class="meta-category">{{ categoryLabel }}</text>
-        <text class="meta-author">{{ article.author }}</text>
-        <text class="meta-read">{{ formatCount(article.read_count) }}阅读</text>
+        <text class="meta-author">{{ article.author || '编辑部' }}</text>
+        <text v-if="article.read_count" class="meta-read">{{ formatCount(article.read_count) }}阅读</text>
       </view>
       <rich-text class="article-body" :nodes="article.content" />
 
@@ -13,17 +13,22 @@
       <view class="inline-cta" @click="goForm">
         <view class="cta-left">
           <text class="cta-title">想了解更多？</text>
-          <text class="cta-desc">提交咨询，专业医师1对1解答</text>
+          <text class="cta-desc">留下您的信息，我们整理后向您推送相关科普资料</text>
         </view>
-        <text class="cta-btn">免费咨询</text>
+        <text class="cta-btn">在线留言</text>
+      </view>
+
+      <!-- 文末医美免责声明 -->
+      <view class="article-disclaimer">
+        <text>本文内容仅供科普参考，不构成医疗、诊断或治疗建议。医美项目效果因人而异，如有需求请前往具备相应资质的医疗机构面诊。</text>
       </view>
 
       <!-- 相关推荐 -->
       <view v-if="relatedList.length > 0" class="related-section">
         <text class="related-title">相关推荐</text>
-        <view v-for="item in relatedList" :key="item._id" class="related-item" @click="goDetail(item._id)">
+        <view v-for="item in relatedList" :key="item._id || item.seed_id" class="related-item" @click="goDetail(item._id || item.seed_id)">
           <text class="related-item-title">{{ item.title }}</text>
-          <text class="related-item-read">{{ formatCount(item.read_count) }}阅读</text>
+          <text v-if="item.read_count" class="related-item-read">{{ formatCount(item.read_count) }}阅读</text>
         </view>
       </view>
     </view>
@@ -48,7 +53,7 @@
           <text class="action-text">分享</text>
         </view>
       </view>
-      <button class="consult-btn" @click="goForm">免费咨询</button>
+      <button class="consult-btn" @click="goForm">在线留言</button>
     </view>
   </view>
 </template>
@@ -56,7 +61,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { getArticleById, getRelatedArticles, formatCount } from '@/utils/mock-data.js'
+import { formatCount } from '@/utils/mock-data.js'
+import { getArticle, getRelatedArticles } from '@/utils/content-api.js'
 
 const article = ref(null)
 const articleId = ref('')
@@ -85,24 +91,28 @@ onLoad((options) => {
   }
 })
 
-function loadArticle(id) {
-  const data = getArticleById(id)
-  if (data) {
-    article.value = data
-    uni.setNavigationBarTitle({ title: data.title })
-
-    // Load related articles
-    relatedList.value = getRelatedArticles(id, data.category, 3)
-
-    // Check like/favorite state
-    const likes = uni.getStorageSync('my_likes') || []
-    isLiked.value = likes.includes(id)
-    const favorites = uni.getStorageSync('my_favorites') || []
-    isFavorited.value = favorites.includes(id)
-
-    // Add to browse history
-    addToHistory(id)
+async function loadArticle(id) {
+  // id 可能是数据库 _id 或 mock 里的 seed_id（如 'a1'），都尝试一下
+  const data = await getArticle({ id, seedId: id })
+  if (!data) {
+    uni.showToast({ title: '文章不存在或已下架', icon: 'none' })
+    return
   }
+  article.value = data
+  uni.setNavigationBarTitle({ title: data.title })
+
+  relatedList.value = await getRelatedArticles({
+    category: data.category,
+    excludeId: data._id || id,
+    limit: 3
+  })
+
+  const likes = uni.getStorageSync('my_likes') || []
+  isLiked.value = likes.includes(id)
+  const favorites = uni.getStorageSync('my_favorites') || []
+  isFavorited.value = favorites.includes(id)
+
+  addToHistory(id)
 }
 
 function addToHistory(id) {
@@ -234,6 +244,18 @@ function goDetail(id) {
   padding: 14rpx 32rpx;
   border-radius: 30rpx;
   flex-shrink: 0;
+}
+
+/* 文末免责声明 */
+.article-disclaimer {
+  margin-top: 30rpx;
+  padding: 20rpx 24rpx;
+  background-color: #FFF8E1;
+  border-left: 6rpx solid #FFC107;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  color: #8A6D3B;
+  line-height: 1.7;
 }
 
 /* Related */

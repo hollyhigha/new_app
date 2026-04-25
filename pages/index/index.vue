@@ -3,6 +3,11 @@
     <!-- 隐私弹窗 -->
     <privacy-popup ref="privacyPopupRef" @agree="onPrivacyAgree" @disagree="onPrivacyDisagree" />
 
+    <!-- 医美科普免责声明（常驻顶部） -->
+    <view class="disclaimer-bar">
+      <text class="disclaimer-text">本平台内容仅供科普参考，不构成诊疗建议，就医请咨询执业医师</text>
+    </view>
+
     <!-- 搜索栏 -->
     <view class="search-bar" @click="goSearch">
       <view class="search-inner">
@@ -41,12 +46,12 @@
         <text class="section-more" @click="switchCategory('all')">更多</text>
       </view>
       <scroll-view scroll-x class="hot-scroll">
-        <view v-for="article in hotArticles" :key="article._id" class="hot-card" @click="goDetail(article._id)">
+        <view v-for="article in hotArticles" :key="article._id || article.seed_id" class="hot-card" @click="goDetail(article._id || article.seed_id)">
           <image class="hot-cover" :src="article.cover_image" mode="aspectFill" />
           <text class="hot-title">{{ article.title }}</text>
           <view class="hot-meta">
-            <text class="hot-author">{{ article.author }}</text>
-            <text class="hot-read">{{ formatCount(article.read_count) }}阅读</text>
+            <text class="hot-author">{{ article.author || '编辑部' }}</text>
+            <text v-if="article.read_count" class="hot-read">{{ formatCount(article.read_count) }}阅读</text>
           </view>
         </view>
       </scroll-view>
@@ -57,16 +62,20 @@
       <view class="section-header">
         <text class="section-title">{{ currentCategory === 'all' ? '最新文章' : currentCategoryLabel }}</text>
       </view>
-      <view v-for="article in displayArticles" :key="article._id" class="article-card" @click="goDetail(article._id)">
+      <view v-for="article in displayArticles" :key="article._id || article.seed_id" class="article-card" @click="goDetail(article._id || article.seed_id)">
         <view class="article-info">
           <text class="article-title">{{ article.title }}</text>
           <text class="article-summary">{{ article.summary }}</text>
           <view class="article-meta">
-            <text class="meta-author">{{ article.author }}</text>
-            <text class="meta-dot">.</text>
-            <text class="meta-read">{{ formatCount(article.read_count) }}阅读</text>
-            <text class="meta-dot">.</text>
-            <text class="meta-time">{{ formatTimeAgo(article.create_time) }}</text>
+            <text class="meta-author">{{ article.author || '编辑部' }}</text>
+            <template v-if="article.read_count">
+              <text class="meta-dot">·</text>
+              <text class="meta-read">{{ formatCount(article.read_count) }}阅读</text>
+            </template>
+            <template v-if="article.create_time">
+              <text class="meta-dot">·</text>
+              <text class="meta-time">{{ formatTimeAgo(article.create_time) }}</text>
+            </template>
           </view>
         </view>
         <image class="article-cover" :src="article.cover_image" mode="aspectFill" />
@@ -92,23 +101,20 @@ import privacyPopup from '@/components/privacy-popup/privacy-popup.vue'
 import floatConsult from '@/components/float-consult/float-consult.vue'
 import {
   parseFromLaunchOptions,
-  parseFromClipboard,
   saveClickId,
-  syncClickIdToCloud
+  syncClickIdToCloud,
+  reportAppInstall
 } from '@/utils/click-id.js'
-import {
-  bannerList,
-  articleList,
-  getArticlesByCategory,
-  formatCount,
-  formatTimeAgo
-} from '@/utils/mock-data.js'
+import { bannerList, formatCount, formatTimeAgo } from '@/utils/mock-data.js'
+import { listArticles, getHotArticles } from '@/utils/content-api.js'
 
 const privacyPopupRef = ref(null)
 const currentCategory = ref('all')
 const page = ref(1)
 const allDisplayed = ref([])
 const hasMore = ref(true)
+const hotArticles = ref([])
+const loading = ref(false)
 
 const displayCategories = [
   { value: 'all', label: '全部', emoji: '🏠' },
@@ -126,46 +132,58 @@ const currentCategoryLabel = computed(() => {
   return cat ? cat.label : '文章'
 })
 
-// Hot articles: 前2个固定为眼袋文章，后2个取其他分类阅读量最高的
-const hotArticles = computed(() => {
-  const eyeBagTop = [...articleList]
-    .filter(a => a.category === 'eye_bag')
-    .sort((a, b) => b.read_count - a.read_count)
-    .slice(0, 2)
-  const othersTop = [...articleList]
-    .filter(a => a.category !== 'eye_bag')
-    .sort((a, b) => b.read_count - a.read_count)
-    .slice(0, 2)
-  return [...eyeBagTop, ...othersTop]
-})
-
 const displayArticles = computed(() => allDisplayed.value)
 
-onMounted(() => {
-  const needPopup = uni.getStorageSync('need_privacy_popup')
-  if (needPopup) {
-    uni.removeStorageSync('need_privacy_popup')
+onMounted(async () => {
+  const privacyAgreed = uni.getStorageSync('privacy_agreed')
+  if (!privacyAgreed) {
     setTimeout(() => {
       privacyPopupRef.value?.open()
-    }, 500)
+    }, 300)
   }
+  loadHotArticles()
   loadArticles(true)
 })
 
-function loadArticles(reset = false) {
-  if (reset) {
-    page.value = 1
-    allDisplayed.value = []
-    hasMore.value = true
+async function loadHotArticles() {
+  try {
+    const items = await getHotArticles({ limit: 4 })
+    hotArticles.value = items || []
+  } catch (e) {
+    hotArticles.value = []
   }
-  const result = getArticlesByCategory(currentCategory.value, page.value, 6)
-  allDisplayed.value = reset ? result.data : [...allDisplayed.value, ...result.data]
-  hasMore.value = result.hasMore
-  page.value++
 }
 
-onPullDownRefresh(() => {
-  loadArticles(true)
+const PAGE_SIZE = 6
+
+async function loadArticles(reset = false) {
+  if (loading.value) return
+  loading.value = true
+  try {
+    if (reset) {
+      page.value = 1
+      allDisplayed.value = []
+      hasMore.value = true
+    }
+    const { items, total } = await listArticles({
+      category: currentCategory.value,
+      page: page.value,
+      pageSize: PAGE_SIZE
+    })
+    allDisplayed.value = reset ? (items || []) : [...allDisplayed.value, ...(items || [])]
+    hasMore.value = allDisplayed.value.length < (total || 0)
+    page.value++
+  } catch (e) {
+    console.error('loadArticles failed:', e)
+    if (reset) allDisplayed.value = []
+    hasMore.value = false
+  } finally {
+    loading.value = false
+  }
+}
+
+onPullDownRefresh(async () => {
+  await Promise.all([loadHotArticles(), loadArticles(true)])
   uni.stopPullDownRefresh()
 })
 
@@ -190,21 +208,28 @@ function goSearch() {
   uni.navigateTo({ url: '/pages/search/index' })
 }
 
-async function onPrivacyAgree() {
-  let result = parseFromLaunchOptions({})
-  if (!result.clickId) {
-    result = await parseFromClipboard()
-  }
+function onPrivacyAgree() {
+  const result = parseFromLaunchOptions({})
   if (result.clickId) {
     saveClickId(result)
     syncClickIdToCloud(result)
+    reportAppInstall({ clickId: result.clickId, clientId: result.clientId })
   }
 }
 
+// iOS 禁止主动退出 App（4.0 / HIG），Android 也不宜强制退出。
+// 用户不同意时进入"仅浏览模式"：仅展示本地科普内容，不收集任何个人信息，
+// 不请求网络归因/登录能力。用户可在"设置"页随时重新查看并同意协议。
 function onPrivacyDisagree() {
-  // #ifdef APP-PLUS
-  plus.runtime.quit()
-  // #endif
+  uni.showModal({
+    title: '温馨提示',
+    content: '不同意协议时，您仍可浏览基础科普内容，但无法使用登录、留言咨询等功能。',
+    showCancel: false,
+    confirmText: '我知道了',
+    success() {
+      uni.setStorageSync('privacy_basic_mode', true)
+    }
+  })
 }
 </script>
 
@@ -212,6 +237,16 @@ function onPrivacyDisagree() {
 .page-index {
   padding-bottom: 120rpx;
   background-color: #F5F5F5;
+}
+
+.disclaimer-bar {
+  background-color: #FFF8E1;
+  padding: 12rpx 30rpx;
+  border-bottom: 1rpx solid #FFECB3;
+}
+.disclaimer-text {
+  font-size: 22rpx;
+  color: #8A6D3B;
 }
 
 /* Search bar */

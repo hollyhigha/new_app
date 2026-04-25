@@ -47,11 +47,33 @@ function handleDisagree() {
 }
 
 function openPrivacy() {
-  uni.navigateTo({ url: '/pages/webview/index?type=privacy' })
+  close()
+  setTimeout(() => {
+    uni.navigateTo({
+      url: '/pages/webview/index?type=privacy',
+      events: {
+        returnToPrivacyPopup: () => open()
+      },
+      success(res) {
+        res.eventChannel.emit('fromPrivacyPopup', { fromPopup: true })
+      }
+    })
+  }, 150)
 }
 
 function openAgreement() {
-  uni.navigateTo({ url: '/pages/webview/index?type=agreement' })
+  close()
+  setTimeout(() => {
+    uni.navigateTo({
+      url: '/pages/webview/index?type=agreement',
+      events: {
+        returnToPrivacyPopup: () => open()
+      },
+      success(res) {
+        res.eventChannel.emit('fromPrivacyPopup', { fromPopup: true })
+      }
+    })
+  }, 150)
 }
 
 defineExpose({ open, close })
@@ -84,14 +106,16 @@ defineExpose({ open, close })
   display: flex;
   gap: 20rpx;
 }
+/* 合规：两个按钮视觉权重需相近，不得弱化"不同意"按钮 */
 .btn-disagree {
   flex: 1;
   height: 80rpx;
   line-height: 80rpx;
   font-size: 30rpx;
   border-radius: 40rpx;
-  background-color: #f5f5f5;
-  color: #999;
+  background-color: #fff;
+  color: #333;
+  border: 2rpx solid #ddd;
 }
 .btn-agree {
   flex: 1;

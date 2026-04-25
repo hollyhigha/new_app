@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="420" viewBox="0 0 750 420">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FCE4EC"/>
+      <stop offset="100%" stop-color="#F8BBD0"/>
+    </linearGradient>
+  </defs>
+  <rect width="750" height="420" fill="url(#g)"/>
+  <g transform="translate(375,180)" fill="#E91E63" opacity="0.7">
+    <circle cx="0" cy="0" r="44" fill="none" stroke="#E91E63" stroke-width="6"/>
+    <path d="M -6 -6 L 6 6 M 6 -6 L -6 6" stroke="#E91E63" stroke-width="4" stroke-linecap="round" transform="translate(0,0) scale(2)"/>
+  </g>
+  <text x="375" y="290" fill="#E91E63" font-size="32" font-family="PingFang SC,Microsoft YaHei,sans-serif" text-anchor="middle" font-weight="600">SºÑn</text>
+  <text x="375" y="330" fill="#999" font-size="22" font-family="PingFang SC,Microsoft YaHei,sans-serif" text-anchor="middle">`Mþ
+¶M÷ÿb:ê	HCþ</text>
+</svg>

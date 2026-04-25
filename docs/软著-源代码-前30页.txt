@@ -1,0 +1,1597 @@
+# 软著登记 —— 源程序文档（前 30 页）
+# 软件名称：靓人科普医美资讯服务软件 V1.0
+# 提取时间：2026-04-19 10:55:42
+# 总行数：1500   总页数（50 行/页）：30
+# 说明：本文件仅供软著登记申请使用，敏感信息已脱敏
+
+=============================================================================
+
+/* ========================================================================= */
+/* 文件：App.vue
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+<script setup>
+import { onLaunch, onShow } from '@dcloudio/uni-app'
+import {
+  parseFromLaunchOptions,
+  saveClickId,
+  syncClickIdToCloud,
+  reportAppInstall
+} from './utils/click-id.js'
+import { onLoginSuccess } from './utils/login-hook.js'
+
+// iOS App Store 链接（提交 App Store 后填入真实 appid）
+// 示例：itms-apps://itunes.apple.com/cn/app/id1234567890
+const APP_STORE_URL = ''
+
+onLaunch(async (options) => {
+  console.log('App Launch', options)
+
+  uni.$on('uni-id-pages-login-success', (e) => {
+    onLoginSuccess(e || {})
+  })
+
+  const privacyAgreed = uni.getStorageSync('privacy_agreed')
+  if (!privacyAgreed) {
+    return
+  }
+
+  await handleClickId(options)
+
+  checkAppUpdate()
+})
+
+onShow((options) => {
+  console.log('App Show', options)
+})
+
+async function handleClickId(options) {
+  const result = parseFromLaunchOptions(options)
+  if (result.clickId) {
+    saveClickId(result)
+    syncClickIdToCloud(result)
+    reportAppInstall({ clickId: result.clickId, clientId: result.clientId })
+  }
+}
+
+function checkAppUpdate() {
+  // #ifdef APP-PLUS
+
+---------- 第 1 页 / 共 30 页 ----------
+
+  const systemInfo = uni.getSystemInfoSync()
+  const platform = systemInfo.osName
+  uniCloud.callFunction({
+    name: 'check-update',
+    data: {
+      platform,
+      version_code: parseInt(systemInfo.appVersionCode || '0')
+    }
+  }).then(res => {
+    const data = res.result
+    if (!data || !data.needUpdate) return
+
+    const isIOS = platform === 'ios'
+    const isForce = data.updateType === 'force'
+    const content = data.releaseNote || (isForce ? '发现新版本，请更新后使用' : '发现新版本，是否更新？')
+
+    uni.showModal({
+      title: '版本更新',
+      content,
+      showCancel: !isForce,
+      confirmText: '前往更新',
+      cancelText: isForce ? '' : '稍后',
+      success(modalRes) {
+        if (!modalRes.confirm) return
+        if (isIOS) {
+          // iOS 引导跳转 App Store，禁止下载 ipa 自升级（违反 Apple 3.3.2 / 4.7）
+          if (APP_STORE_URL) {
+            plus.runtime.openURL(APP_STORE_URL)
+          } else {
+            uni.showToast({ title: '请前往 App Store 搜索"靓人科普"更新', icon: 'none' })
+          }
+        } else {
+          // Android：优先跳应用市场，其次走下载流程
+          openAndroidMarketOrDownload(data.downloadUrl)
+        }
+      }
+    })
+  }).catch(err => {
+    console.error('check-update failed:', err)
+  })
+  // #endif
+}
+
+// #ifdef APP-PLUS
+function openAndroidMarketOrDownload(downloadUrl) {
+  try {
+    const pkg = plus.runtime.appid
+    plus.runtime.openURL('market://details?id=' + pkg, (err) => {
+      if (err && downloadUrl) {
+        downloadAndInstall(downloadUrl)
+
+---------- 第 2 页 / 共 30 页 ----------
+
+      }
+    })
+  } catch (e) {
+    if (downloadUrl) downloadAndInstall(downloadUrl)
+  }
+}
+
+function downloadAndInstall(url) {
+  uni.showLoading({ title: '下载中...' })
+  uni.downloadFile({
+    url,
+    success(res) {
+      uni.hideLoading()
+      if (res.statusCode === 200) {
+        plus.runtime.install(res.tempFilePath, { force: false }, () => {
+          plus.runtime.restart()
+        }, (err) => {
+          uni.showToast({ title: '安装失败', icon: 'none' })
+          console.error('install failed:', err)
+        })
+      }
+    },
+    fail() {
+      uni.hideLoading()
+      uni.showToast({ title: '下载失败', icon: 'none' })
+    }
+  })
+}
+// #endif
+</script>
+
+<style>
+page {
+  background-color: #F5F5F5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 28rpx;
+  color: #333333;
+}
+</style>
+
+/* ========================================================================= */
+/* 文件：main.js
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+import { createSSRApp } from 'vue'
+import App from './App.vue'
+
+export function createApp() {
+  const app = createSSRApp(App)
+  return { app }
+
+---------- 第 3 页 / 共 30 页 ----------
+
+}
+
+/* ========================================================================= */
+/* 文件：manifest.json
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+{
+    "name" : "靓人科普",
+    "appid" : "__UNI__C37C42A",
+    "description" : "医学美容科普信息平台，提供项目知识、问答、案例信息展示。本应用不提供诊疗服务。",
+    "versionName" : "1.0.0",
+    "versionCode" : 1,
+    "transformPx" : false,
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        "modules" : {},
+        "distribute" : {
+            "android" : {
+                "packagename" : "com.liangren.kepu",
+                "minSdkVersion" : 23,
+                "targetSdkVersion" : 34,
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a" ],
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>"
+                ]
+            },
+            "ios" : {
+                "dSYMs" : false,
+                "idfa" : false,
+                "privacyDescription" : {
+                    "NSUserTrackingUsageDescription" : "本应用不会进行用户追踪，此项为系统框架默认占位。"
+                }
+            },
+            "sdkConfigs" : {}
+        }
+    },
+    "quickapp" : {},
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+
+---------- 第 4 页 / 共 30 页 ----------
+
+            "urlCheck" : false
+        }
+    },
+    "vueVersion" : "3",
+    "locale" : "auto",
+    "fallbackLocale" : "zh-Hans"
+}
+
+/* ========================================================================= */
+/* 文件：pages.json
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "靓人科普",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/discover/index",
+      "style": {
+        "navigationBarTitleText": "发现"
+      }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/article/detail",
+      "style": {
+        "navigationBarTitleText": "文章详情"
+      }
+    },
+    {
+      "path": "pages/search/index",
+      "style": {
+        "navigationBarTitleText": "搜索"
+      }
+
+---------- 第 5 页 / 共 30 页 ----------
+
+    },
+    {
+      "path": "pages/form/index",
+      "style": {
+        "navigationBarTitleText": "在线留言"
+      }
+    },
+    {
+      "path": "pages/result/index",
+      "style": {
+        "navigationBarTitleText": "提交成功"
+      }
+    },
+    {
+      "path": "pages/favorites/index",
+      "style": {
+        "navigationBarTitleText": "我的收藏"
+      }
+    },
+    {
+      "path": "pages/history/index",
+      "style": {
+        "navigationBarTitleText": "浏览记录"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
+    },
+    {
+      "path": "pages/about/index",
+      "style": {
+        "navigationBarTitleText": "关于我们"
+      }
+    },
+    {
+      "path": "pages/feedback/index",
+      "style": {
+        "navigationBarTitleText": "意见反馈"
+      }
+    },
+    {
+      "path": "pages/webview/index",
+      "style": {
+        "navigationBarTitleText": ""
+      }
+    },
+    {
+
+---------- 第 6 页 / 共 30 页 ----------
+
+      "path": "uni_modules/uni-id-pages/pages/login/login-withoutpwd",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "uni_modules/uni-id-pages/pages/login/login-smscode",
+      "style": {
+        "navigationBarTitleText": "手机验证码登录"
+      }
+    },
+    {
+      "path": "uni_modules/uni-id-pages/pages/userinfo/deactivate/deactivate",
+      "style": {
+        "navigationBarTitleText": "注销账号"
+      }
+    },
+    {
+      "path": "uni_modules/uni-id-pages/pages/common/webview/webview",
+      "style": {
+        "enablePullDownRefresh": false,
+        "navigationBarTitleText": ""
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "靓人科普",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#E91E63",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tab/home.png",
+        "selectedIconPath": "static/tab/home-active.png"
+      },
+      {
+        "pagePath": "pages/discover/index",
+        "text": "发现",
+        "iconPath": "static/tab/discover.png",
+        "selectedIconPath": "static/tab/discover-active.png"
+      },
+      {
+
+---------- 第 7 页 / 共 30 页 ----------
+
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "static/tab/mine.png",
+        "selectedIconPath": "static/tab/mine-active.png"
+      }
+    ]
+  },
+  "uniIdRouter": {
+    "loginPage": "uni_modules/uni-id-pages/pages/login/login-withoutpwd",
+    "needLogin": [],
+    "priority": 99
+  }
+}
+
+/* ========================================================================= */
+/* 文件：pages/index/index.vue
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+<template>
+  <view class="page-index">
+    <!-- 隐私弹窗 -->
+    <privacy-popup ref="privacyPopupRef" @agree="onPrivacyAgree" @disagree="onPrivacyDisagree" />
+
+    <!-- 医美科普免责声明（常驻顶部） -->
+    <view class="disclaimer-bar">
+      <text class="disclaimer-text">本平台内容仅供科普参考，不构成诊疗建议，就医请咨询执业医师</text>
+    </view>
+
+    <!-- 搜索栏 -->
+    <view class="search-bar" @click="goSearch">
+      <view class="search-inner">
+        <text class="search-icon">&#x1F50D;</text>
+        <text class="search-placeholder">搜索医美科普知识...</text>
+      </view>
+    </view>
+
+    <!-- Banner轮播 -->
+    <swiper class="banner-swiper" autoplay circular indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff">
+      <swiper-item v-for="banner in bannerList" :key="banner.id" @click="onBannerClick(banner)">
+        <image class="banner-image" :src="banner.image" mode="aspectFill" />
+        <view class="banner-title-bar">
+          <text class="banner-title">{{ banner.title }}</text>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <!-- 分类导航 -->
+    <view class="category-grid">
+      <view v-for="cat in displayCategories" :key="cat.value" class="category-grid-item" @click="switchCategory(cat.value)">
+        <view class="category-icon-container">
+
+---------- 第 8 页 / 共 30 页 ----------
+
+          <view :class="['category-icon-wrap', currentCategory === cat.value && 'active']">
+            <text class="category-icon-text">{{ cat.emoji }}</text>
+          </view>
+          <text v-if="cat.hot" class="category-hot-badge">热</text>
+        </view>
+        <text :class="['category-name', currentCategory === cat.value && 'active']">{{ cat.label }}</text>
+      </view>
+    </view>
+
+    <!-- 热门推荐 -->
+    <view class="section" v-if="currentCategory === 'all'">
+      <view class="section-header">
+        <text class="section-title">热门推荐</text>
+        <text class="section-more" @click="switchCategory('all')">更多</text>
+      </view>
+      <scroll-view scroll-x class="hot-scroll">
+        <view v-for="article in hotArticles" :key="article._id || article.seed_id" class="hot-card" @click="goDetail(article._id || article.seed_id)">
+          <image class="hot-cover" :src="article.cover_image" mode="aspectFill" />
+          <text class="hot-title">{{ article.title }}</text>
+          <view class="hot-meta">
+            <text class="hot-author">{{ article.author || '编辑部' }}</text>
+            <text v-if="article.read_count" class="hot-read">{{ formatCount(article.read_count) }}阅读</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 文章列表 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">{{ currentCategory === 'all' ? '最新文章' : currentCategoryLabel }}</text>
+      </view>
+      <view v-for="article in displayArticles" :key="article._id || article.seed_id" class="article-card" @click="goDetail(article._id || article.seed_id)">
+        <view class="article-info">
+          <text class="article-title">{{ article.title }}</text>
+          <text class="article-summary">{{ article.summary }}</text>
+          <view class="article-meta">
+            <text class="meta-author">{{ article.author || '编辑部' }}</text>
+            <template v-if="article.read_count">
+              <text class="meta-dot">·</text>
+              <text class="meta-read">{{ formatCount(article.read_count) }}阅读</text>
+            </template>
+            <template v-if="article.create_time">
+              <text class="meta-dot">·</text>
+              <text class="meta-time">{{ formatTimeAgo(article.create_time) }}</text>
+            </template>
+          </view>
+        </view>
+        <image class="article-cover" :src="article.cover_image" mode="aspectFill" />
+      </view>
+
+---------- 第 9 页 / 共 30 页 ----------
+
+
+      <view v-if="displayArticles.length === 0" class="empty-tip">
+        <text>暂无相关文章</text>
+      </view>
+      <view v-if="!hasMore && displayArticles.length > 0" class="loading-tip">
+        <text>— 已经到底了 —</text>
+      </view>
+    </view>
+
+    <!-- 悬浮咨询按钮 -->
+    <float-consult />
+  </view>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { onPullDownRefresh } from '@dcloudio/uni-app'
+import privacyPopup from '@/components/privacy-popup/privacy-popup.vue'
+import floatConsult from '@/components/float-consult/float-consult.vue'
+import {
+  parseFromLaunchOptions,
+  saveClickId,
+  syncClickIdToCloud,
+  reportAppInstall
+} from '@/utils/click-id.js'
+import { bannerList, formatCount, formatTimeAgo } from '@/utils/mock-data.js'
+import { listArticles, getHotArticles } from '@/utils/content-api.js'
+
+const privacyPopupRef = ref(null)
+const currentCategory = ref('all')
+const page = ref(1)
+const allDisplayed = ref([])
+const hasMore = ref(true)
+const hotArticles = ref([])
+const loading = ref(false)
+
+const displayCategories = [
+  { value: 'all', label: '全部', emoji: '🏠' },
+  { value: 'eye_bag', label: '眼袋', emoji: '👁', hot: true },
+  { value: 'double_eyelid', label: '双眼皮', emoji: '✂️' },
+  { value: 'skin_care', label: '皮肤管理', emoji: '✨' },
+  { value: 'nose', label: '鼻部整形', emoji: '👃' },
+  { value: 'face', label: '面部轮廓', emoji: '💎' },
+  { value: 'dental', label: '口腔美容', emoji: '😁' },
+  { value: 'anti_aging', label: '抗衰老', emoji: '🌿' }
+]
+
+const currentCategoryLabel = computed(() => {
+  const cat = displayCategories.find(c => c.value === currentCategory.value)
+  return cat ? cat.label : '文章'
+
+---------- 第 10 页 / 共 30 页 ----------
+
+})
+
+const displayArticles = computed(() => allDisplayed.value)
+
+onMounted(async () => {
+  const privacyAgreed = uni.getStorageSync('privacy_agreed')
+  if (!privacyAgreed) {
+    setTimeout(() => {
+      privacyPopupRef.value?.open()
+    }, 300)
+  }
+  loadHotArticles()
+  loadArticles(true)
+})
+
+async function loadHotArticles() {
+  try {
+    const items = await getHotArticles({ limit: 4 })
+    hotArticles.value = items || []
+  } catch (e) {
+    hotArticles.value = []
+  }
+}
+
+const PAGE_SIZE = 6
+
+async function loadArticles(reset = false) {
+  if (loading.value) return
+  loading.value = true
+  try {
+    if (reset) {
+      page.value = 1
+      allDisplayed.value = []
+      hasMore.value = true
+    }
+    const { items, total } = await listArticles({
+      category: currentCategory.value,
+      page: page.value,
+      pageSize: PAGE_SIZE
+    })
+    allDisplayed.value = reset ? (items || []) : [...allDisplayed.value, ...(items || [])]
+    hasMore.value = allDisplayed.value.length < (total || 0)
+    page.value++
+  } catch (e) {
+    console.error('loadArticles failed:', e)
+    if (reset) allDisplayed.value = []
+    hasMore.value = false
+  } finally {
+    loading.value = false
+  }
+
+---------- 第 11 页 / 共 30 页 ----------
+
+}
+
+onPullDownRefresh(async () => {
+  await Promise.all([loadHotArticles(), loadArticles(true)])
+  uni.stopPullDownRefresh()
+})
+
+function switchCategory(value) {
+  currentCategory.value = value
+  loadArticles(true)
+}
+
+function onBannerClick(banner) {
+  if (banner.link === 'form') {
+    uni.navigateTo({ url: '/pages/form/index' })
+  } else if (banner.articleId) {
+    uni.navigateTo({ url: `/pages/article/detail?id=${banner.articleId}` })
+  }
+}
+
+function goDetail(id) {
+  uni.navigateTo({ url: `/pages/article/detail?id=${id}` })
+}
+
+function goSearch() {
+  uni.navigateTo({ url: '/pages/search/index' })
+}
+
+function onPrivacyAgree() {
+  const result = parseFromLaunchOptions({})
+  if (result.clickId) {
+    saveClickId(result)
+    syncClickIdToCloud(result)
+    reportAppInstall({ clickId: result.clickId, clientId: result.clientId })
+  }
+}
+
+// iOS 禁止主动退出 App（4.0 / HIG），Android 也不宜强制退出。
+// 用户不同意时进入"仅浏览模式"：仅展示本地科普内容，不收集任何个人信息，
+// 不请求网络归因/登录能力。用户可在"设置"页随时重新查看并同意协议。
+function onPrivacyDisagree() {
+  uni.showModal({
+    title: '温馨提示',
+    content: '不同意协议时，您仍可浏览基础科普内容，但无法使用登录、留言咨询等功能。',
+    showCancel: false,
+    confirmText: '我知道了',
+    success() {
+      uni.setStorageSync('privacy_basic_mode', true)
+    }
+  })
+
+---------- 第 12 页 / 共 30 页 ----------
+
+}
+</script>
+
+<style scoped>
+.page-index {
+  padding-bottom: 120rpx;
+  background-color: #F5F5F5;
+}
+
+.disclaimer-bar {
+  background-color: #FFF8E1;
+  padding: 12rpx 30rpx;
+  border-bottom: 1rpx solid #FFECB3;
+}
+.disclaimer-text {
+  font-size: 22rpx;
+  color: #8A6D3B;
+}
+
+/* Search bar */
+.search-bar {
+  padding: 16rpx 30rpx;
+  background-color: #fff;
+}
+.search-inner {
+  display: flex;
+  align-items: center;
+  height: 68rpx;
+  background-color: #F5F5F5;
+  border-radius: 34rpx;
+  padding: 0 24rpx;
+}
+.search-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+.search-placeholder {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* Banner */
+.banner-swiper {
+  height: 340rpx;
+  margin: 0 30rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  margin-top: 16rpx;
+}
+.banner-image {
+
+---------- 第 13 页 / 共 30 页 ----------
+
+  width: 100%;
+  height: 340rpx;
+}
+.banner-title-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16rpx 24rpx;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+}
+.banner-title {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* Category grid */
+.category-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 24rpx 30rpx 10rpx;
+  background-color: #fff;
+  margin-top: 16rpx;
+}
+.category-grid-item {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.category-icon-container {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
+  margin-bottom: 10rpx;
+}
+.category-icon-wrap {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  background-color: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.category-hot-badge {
+  position: absolute;
+  top: -8rpx;
+
+---------- 第 14 页 / 共 30 页 ----------
+
+  right: -8rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF3B30);
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: bold;
+  padding: 4rpx 10rpx;
+  border-radius: 20rpx;
+  line-height: 1.4;
+  letter-spacing: 1rpx;
+}
+.category-icon-wrap.active {
+  background-color: #FCE4EC;
+}
+.category-icon-text {
+  font-size: 40rpx;
+}
+.category-name {
+  font-size: 24rpx;
+  color: #666;
+}
+.category-name.active {
+  color: #E91E63;
+  font-weight: bold;
+}
+
+/* Section */
+.section {
+  margin-top: 16rpx;
+  background-color: #fff;
+  padding: 24rpx 30rpx;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+.section-more {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* Hot scroll */
+.hot-scroll {
+  white-space: nowrap;
+
+---------- 第 15 页 / 共 30 页 ----------
+
+}
+.hot-card {
+  display: inline-block;
+  width: 280rpx;
+  margin-right: 20rpx;
+  vertical-align: top;
+  white-space: normal;
+}
+.hot-cover {
+  width: 280rpx;
+  height: 180rpx;
+  border-radius: 12rpx;
+}
+.hot-title {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: bold;
+  margin-top: 10rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hot-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8rpx;
+}
+.hot-author, .hot-read {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* Article list */
+.article-card {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.article-card:last-child {
+  border-bottom: none;
+}
+.article-info {
+  flex: 1;
+  padding-right: 20rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.article-title {
+
+---------- 第 16 页 / 共 30 页 ----------
+
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.article-summary {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.article-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 10rpx;
+}
+.meta-author, .meta-read, .meta-time {
+  font-size: 22rpx;
+  color: #bbb;
+}
+.meta-dot {
+  margin: 0 8rpx;
+  color: #ddd;
+  font-size: 22rpx;
+}
+.article-cover {
+  width: 220rpx;
+  height: 150rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+}
+
+/* Empty / loading */
+.loading-tip, .empty-tip {
+  text-align: center;
+  padding: 30rpx;
+  color: #ccc;
+  font-size: 24rpx;
+}
+
+</style>
+
+/* ========================================================================= */
+/* 文件：pages/article/detail.vue
+
+---------- 第 17 页 / 共 30 页 ----------
+
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+<template>
+  <view class="page-detail">
+    <view v-if="article" class="article-content">
+      <text class="article-title">{{ article.title }}</text>
+      <view class="article-meta">
+        <text class="meta-category">{{ categoryLabel }}</text>
+        <text class="meta-author">{{ article.author || '编辑部' }}</text>
+        <text v-if="article.read_count" class="meta-read">{{ formatCount(article.read_count) }}阅读</text>
+      </view>
+      <rich-text class="article-body" :nodes="article.content" />
+
+      <!-- 文中咨询引导卡片 -->
+      <view class="inline-cta" @click="goForm">
+        <view class="cta-left">
+          <text class="cta-title">想了解更多？</text>
+          <text class="cta-desc">留下您的信息，我们整理后向您推送相关科普资料</text>
+        </view>
+        <text class="cta-btn">在线留言</text>
+      </view>
+
+      <!-- 文末医美免责声明 -->
+      <view class="article-disclaimer">
+        <text>本文内容仅供科普参考，不构成医疗、诊断或治疗建议。医美项目效果因人而异，如有需求请前往具备相应资质的医疗机构面诊。</text>
+      </view>
+
+      <!-- 相关推荐 -->
+      <view v-if="relatedList.length > 0" class="related-section">
+        <text class="related-title">相关推荐</text>
+        <view v-for="item in relatedList" :key="item._id || item.seed_id" class="related-item" @click="goDetail(item._id || item.seed_id)">
+          <text class="related-item-title">{{ item.title }}</text>
+          <text v-if="item.read_count" class="related-item-read">{{ formatCount(item.read_count) }}阅读</text>
+        </view>
+      </view>
+    </view>
+
+    <view v-else class="loading">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 底部操作栏 -->
+    <view class="bottom-bar">
+      <view class="action-group">
+        <view class="action-item" @click="toggleLike">
+          <text :class="['action-icon', isLiked && 'liked']">{{ isLiked ? '&#x2764;' : '&#x2661;' }}</text>
+          <text class="action-text">{{ isLiked ? '已赞' : '点赞' }}</text>
+        </view>
+        <view class="action-item" @click="toggleFavorite">
+          <text :class="['action-icon', isFavorited && 'favorited']">{{ isFavorited ? '&#x2605;' : '&#x2606;' }}</text>
+
+---------- 第 18 页 / 共 30 页 ----------
+
+          <text class="action-text">{{ isFavorited ? '已收藏' : '收藏' }}</text>
+        </view>
+        <view class="action-item" @click="handleShare">
+          <text class="action-icon">&#x21AA;</text>
+          <text class="action-text">分享</text>
+        </view>
+      </view>
+      <button class="consult-btn" @click="goForm">在线留言</button>
+    </view>
+  </view>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import { formatCount } from '@/utils/mock-data.js'
+import { getArticle, getRelatedArticles } from '@/utils/content-api.js'
+
+const article = ref(null)
+const articleId = ref('')
+const isLiked = ref(false)
+const isFavorited = ref(false)
+const relatedList = ref([])
+
+const categoryMap = {
+  double_eyelid: '双眼皮',
+  skin_care: '皮肤管理',
+  nose: '鼻部整形',
+  face: '面部轮廓',
+  dental: '口腔美容',
+  body: '形体塑造',
+  anti_aging: '抗衰老'
+}
+
+const categoryLabel = computed(() => {
+  return categoryMap[article.value?.category] || '科普'
+})
+
+onLoad((options) => {
+  if (options.id) {
+    articleId.value = options.id
+    loadArticle(options.id)
+  }
+})
+
+async function loadArticle(id) {
+  // id 可能是数据库 _id 或 mock 里的 seed_id（如 'a1'），都尝试一下
+  const data = await getArticle({ id, seedId: id })
+  if (!data) {
+    uni.showToast({ title: '文章不存在或已下架', icon: 'none' })
+
+---------- 第 19 页 / 共 30 页 ----------
+
+    return
+  }
+  article.value = data
+  uni.setNavigationBarTitle({ title: data.title })
+
+  relatedList.value = await getRelatedArticles({
+    category: data.category,
+    excludeId: data._id || id,
+    limit: 3
+  })
+
+  const likes = uni.getStorageSync('my_likes') || []
+  isLiked.value = likes.includes(id)
+  const favorites = uni.getStorageSync('my_favorites') || []
+  isFavorited.value = favorites.includes(id)
+
+  addToHistory(id)
+}
+
+function addToHistory(id) {
+  let history = uni.getStorageSync('browse_history') || []
+  history = history.filter(h => h !== id)
+  history.unshift(id)
+  if (history.length > 50) history = history.slice(0, 50)
+  uni.setStorageSync('browse_history', history)
+}
+
+function toggleLike() {
+  let likes = uni.getStorageSync('my_likes') || []
+  if (isLiked.value) {
+    likes = likes.filter(id => id !== articleId.value)
+  } else {
+    likes.unshift(articleId.value)
+  }
+  uni.setStorageSync('my_likes', likes)
+  isLiked.value = !isLiked.value
+  uni.showToast({ title: isLiked.value ? '已点赞' : '已取消', icon: 'none', duration: 800 })
+}
+
+function toggleFavorite() {
+  let favorites = uni.getStorageSync('my_favorites') || []
+  if (isFavorited.value) {
+    favorites = favorites.filter(id => id !== articleId.value)
+  } else {
+    favorites.unshift(articleId.value)
+  }
+  uni.setStorageSync('my_favorites', favorites)
+  isFavorited.value = !isFavorited.value
+  uni.showToast({ title: isFavorited.value ? '已收藏' : '已取消收藏', icon: 'none', duration: 800 })
+}
+
+---------- 第 20 页 / 共 30 页 ----------
+
+
+function handleShare() {
+  // #ifdef APP-PLUS
+  uni.share({
+    provider: 'weixin',
+    scene: 'WXSceneSession',
+    type: 0,
+    title: article.value?.title,
+    summary: article.value?.summary,
+    success: () => {},
+    fail: () => {
+      uni.showToast({ title: '分享功能需要安装微信', icon: 'none' })
+    }
+  })
+  // #endif
+  // #ifndef APP-PLUS
+  uni.showToast({ title: '长按可分享给好友', icon: 'none' })
+  // #endif
+}
+
+function goForm() {
+  uni.navigateTo({ url: '/pages/form/index' })
+}
+
+function goDetail(id) {
+  uni.redirectTo({ url: `/pages/article/detail?id=${id}` })
+}
+</script>
+
+<style scoped>
+.page-detail {
+  padding-bottom: 160rpx;
+  background-color: #fff;
+}
+.article-content {
+  padding: 30rpx;
+}
+.article-title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.5;
+}
+.article-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+  margin-bottom: 30rpx;
+  gap: 20rpx;
+}
+
+---------- 第 21 页 / 共 30 页 ----------
+
+.meta-category {
+  font-size: 22rpx;
+  color: #E91E63;
+  background-color: #FCE4EC;
+  padding: 4rpx 16rpx;
+  border-radius: 6rpx;
+}
+.meta-author, .meta-read {
+  font-size: 24rpx;
+  color: #999;
+}
+.article-body {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.8;
+}
+
+/* Inline CTA */
+.inline-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40rpx;
+  padding: 28rpx;
+  background: linear-gradient(135deg, #FCE4EC, #F8BBD0);
+  border-radius: 16rpx;
+}
+.cta-left { flex: 1; }
+.cta-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #C2185B;
+  display: block;
+}
+.cta-desc {
+  font-size: 24rpx;
+  color: #E91E63;
+  margin-top: 6rpx;
+  display: block;
+}
+.cta-btn {
+  background-color: #E91E63;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: bold;
+  padding: 14rpx 32rpx;
+  border-radius: 30rpx;
+  flex-shrink: 0;
+}
+
+
+---------- 第 22 页 / 共 30 页 ----------
+
+/* 文末免责声明 */
+.article-disclaimer {
+  margin-top: 30rpx;
+  padding: 20rpx 24rpx;
+  background-color: #FFF8E1;
+  border-left: 6rpx solid #FFC107;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  color: #8A6D3B;
+  line-height: 1.7;
+}
+
+/* Related */
+.related-section {
+  margin-top: 50rpx;
+  padding-top: 30rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+.related-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  display: block;
+}
+.related-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+.related-item:last-child { border-bottom: none; }
+.related-item-title {
+  font-size: 28rpx;
+  color: #333;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-right: 20rpx;
+}
+.related-item-read {
+  font-size: 22rpx;
+  color: #ccc;
+  flex-shrink: 0;
+}
+
+.loading {
+
+---------- 第 23 页 / 共 30 页 ----------
+
+  text-align: center;
+  padding: 60rpx;
+  color: #999;
+}
+
+/* Bottom bar */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  padding: 16rpx 30rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.action-group {
+  display: flex;
+  gap: 24rpx;
+}
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.action-icon {
+  font-size: 40rpx;
+  color: #999;
+}
+.action-icon.liked { color: #E91E63; }
+.action-icon.favorited { color: #FFC107; }
+.action-text {
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 2rpx;
+}
+.consult-btn {
+  flex: 1;
+  background-color: #E91E63;
+  color: #fff;
+  border-radius: 44rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+}
+</style>
+
+---------- 第 24 页 / 共 30 页 ----------
+
+
+/* ========================================================================= */
+/* 文件：pages/discover/index.vue
+/* 软件：靓人科普医美资讯服务软件 V1.0
+/* ========================================================================= */
+<template>
+  <view class="page-discover">
+    <!-- 顶部标签切换 -->
+    <view class="tab-bar">
+      <view
+        v-for="tab in tabs"
+        :key="tab.value"
+        :class="['tab-item', currentTab === tab.value && 'active']"
+        @click="currentTab = tab.value"
+      >
+        <text>{{ tab.label }}</text>
+        <view v-if="currentTab === tab.value" class="tab-line" />
+      </view>
+    </view>
+
+    <!-- 知识百科 -->
+    <view v-if="currentTab === 'encyclopedia'" class="tab-content">
+      <!-- 眼袋科普小测 -->
+      <view class="quiz-banner" @click="startQuiz">
+        <view class="quiz-banner-left">
+          <text class="quiz-banner-title">👁 眼袋类型科普小测</text>
+          <text class="quiz-banner-desc">3 个问题，了解眼袋相关知识（非诊疗建议）</text>
+        </view>
+        <text class="quiz-banner-btn">开始了解 →</text>
+      </view>
+
+      <view class="wiki-grid">
+        <view v-for="cat in wikiCategories" :key="cat.value" class="wiki-card" @click="goCategory(cat.value)">
+          <view class="wiki-emoji-wrap">
+            <view class="wiki-emoji">{{ cat.emoji }}</view>
+            <text v-if="cat.hot" class="wiki-hot-badge">热</text>
+          </view>
+          <text class="wiki-title">{{ cat.label }}</text>
+          <text class="wiki-desc">{{ cat.desc }}</text>
+          <text class="wiki-count">{{ cat.count }}篇科普</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 眼袋自测弹窗 -->
+    <view v-if="quizVisible" class="quiz-mask" @click.self="quizVisible = false">
+      <view class="quiz-modal">
+        <!-- 结果页 -->
+        <view v-if="quizStep === 4" class="quiz-result">
+          <text class="quiz-result-emoji">{{ quizResult.emoji }}</text>
+
+---------- 第 25 页 / 共 30 页 ----------
+
+          <text class="quiz-result-title">{{ quizResult.title }}</text>
+          <text class="quiz-result-desc">{{ quizResult.desc }}</text>
+          <view class="quiz-result-btns">
+            <view class="quiz-btn-consult" @click="goFormFromQuiz">查看更多相关科普</view>
+            <view class="quiz-btn-close" @click="quizVisible = false">知道了</view>
+          </view>
+          <text class="quiz-result-tip">以上内容仅供科普参考，具体情况请以执业医师面诊结果为准。</text>
+        </view>
+        <!-- 问题页 -->
+        <view v-else>
+          <view class="quiz-progress">
+            <view class="quiz-progress-bar" :style="{ width: (quizStep / 3 * 100) + '%' }" />
+          </view>
+          <text class="quiz-step-label">第 {{ quizStep }}/3 题</text>
+          <text class="quiz-question">{{ quizQuestions[quizStep - 1].q }}</text>
+          <view
+            v-for="opt in quizQuestions[quizStep - 1].options"
+            :key="opt.value"
+            class="quiz-option"
+            @click="answerQuiz(opt.value)"
+          >
+            <text>{{ opt.label }}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 热门问答 -->
+    <view v-if="currentTab === 'qa'" class="tab-content">
+      <view v-for="qa in qaList" :key="qa._id || qa.seed_id" class="qa-card" @click="goQADetail(qa)">
+        <view class="qa-header">
+          <text class="qa-q-icon">Q</text>
+          <text class="qa-question">{{ qa.question }}</text>
+        </view>
+        <view class="qa-body">
+          <text class="qa-a-icon">A</text>
+          <text class="qa-answer">{{ qa.answer }}</text>
+        </view>
+        <view class="qa-footer">
+          <text class="qa-category">{{ getCategoryLabel(qa.category) }}</text>
+          <text class="qa-answerer">{{ qa.answerer_name || '编辑部' }}</text>
+        </view>
+      </view>
+
+      <view v-if="!qaList.length" class="empty-tip">
+        <text>暂无问答内容</text>
+      </view>
+
+      <view class="consult-banner" @click="goForm">
+        <text class="consult-banner-text">想了解更多？留下您的信息，我们将整理相关科普资料</text>
+
+---------- 第 26 页 / 共 30 页 ----------
+
+        <text class="consult-banner-btn">在线留言</text>
+      </view>
+    </view>
+
+    <!-- 美丽贴士 -->
+    <view v-if="currentTab === 'tips'" class="tab-content">
+      <view v-for="(tip, index) in tipsList" :key="tip._id || tip.seed_id || index" class="tip-card">
+        <view class="tip-number">
+          <text class="tip-num-text">{{ String(index + 1).padStart(2, '0') }}</text>
+        </view>
+        <view class="tip-content">
+          <text class="tip-title">{{ tip.title }}</text>
+          <text class="tip-text">{{ tip.content }}</text>
+        </view>
+      </view>
+
+      <view v-if="!tipsList.length" class="empty-tip">
+        <text>暂无贴士内容</text>
+      </view>
+
+      <view class="consult-banner" @click="goForm">
+        <text class="consult-banner-text">想了解更多护肤科普？留下您的信息</text>
+        <text class="consult-banner-btn">在线留言</text>
+      </view>
+    </view>
+
+    <!-- 悬浮咨询按钮 -->
+    <float-consult />
+  </view>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import floatConsult from '@/components/float-consult/float-consult.vue'
+import { listQa, listTips, listArticles } from '@/utils/content-api.js'
+
+// 注意：首版"案例展示"tab 已依据《医疗广告管理办法》第七条暂时下线
+// （禁止以治疗前后对比形式宣传医疗广告）。待获得对应广告审查证明后再开放。
+const tabs = [
+  { label: '知识百科', value: 'encyclopedia' },
+  { label: '热门问答', value: 'qa' },
+  { label: '美丽贴士', value: 'tips' }
+]
+
+const currentTab = ref('encyclopedia')
+const qaList = ref([])
+const tipsList = ref([])
+const qaLoaded = ref(false)
+const tipsLoaded = ref(false)
+
+
+---------- 第 27 页 / 共 30 页 ----------
+
+const categoryMap = {
+  eye_bag: '眼袋',
+  double_eyelid: '双眼皮',
+  skin_care: '皮肤管理',
+  nose: '鼻部整形',
+  face: '面部轮廓',
+  dental: '口腔美容',
+  body: '形体塑造',
+  anti_aging: '抗衰老'
+}
+
+const wikiCategories = [
+  { value: 'eye_bag', label: '眼袋', emoji: '👁', desc: '内切/外切/无创祛眼袋' },
+  { value: 'double_eyelid', label: '双眼皮', emoji: '✂️', desc: '全切/埋线/开眼角' },
+  { value: 'skin_care', label: '皮肤管理', emoji: '✨', desc: '光子嫩肤/刷酸/补水' },
+  { value: 'nose', label: '鼻部整形', emoji: '👃', desc: '隆鼻/鼻综合/鼻翼缩小' },
+  { value: 'face', label: '面部轮廓', emoji: '💎', desc: '瘦脸针/吸脂/下颌角' },
+  { value: 'dental', label: '口腔美容', emoji: '😁', desc: '牙齿矫正/贴面/美白' },
+  { value: 'anti_aging', label: '抗衰老', emoji: '🌿', desc: '热玛吉/超声刀/水光' }
+]
+
+function getCategoryLabel(value) {
+  return categoryMap[value] || value
+}
+
+async function goCategory(category) {
+  const { items } = await listArticles({ category, page: 1, pageSize: 1 })
+  const first = items && items[0]
+  if (first) {
+    const targetId = first._id || first.seed_id
+    uni.navigateTo({ url: `/pages/article/detail?id=${targetId}` })
+  } else {
+    uni.showToast({ title: '该分类暂无科普内容', icon: 'none' })
+  }
+}
+
+async function loadQa() {
+  if (qaLoaded.value) return
+  try {
+    const { items } = await listQa({ page: 1, pageSize: 30 })
+    qaList.value = items || []
+  } finally {
+    qaLoaded.value = true
+  }
+}
+
+async function loadTips() {
+  if (tipsLoaded.value) return
+  try {
+    const { items } = await listTips({ page: 1, pageSize: 30 })
+
+---------- 第 28 页 / 共 30 页 ----------
+
+    tipsList.value = items || []
+  } finally {
+    tipsLoaded.value = true
+  }
+}
+
+watch(currentTab, (tab) => {
+  if (tab === 'qa') loadQa()
+  else if (tab === 'tips') loadTips()
+})
+
+onMounted(() => {
+  // 预加载问答，切换时更顺滑
+  loadQa()
+})
+
+function goQADetail(qa) {
+  // Show the answer in a simple modal
+  uni.showModal({
+    title: qa.question,
+    content: qa.answer,
+    showCancel: false,
+    confirmText: '知道了'
+  })
+}
+
+function goForm() {
+  uni.navigateTo({ url: '/pages/form/index' })
+}
+
+// ===== 眼袋自测 =====
+const quizVisible = ref(false)
+const quizStep = ref(1)
+const quizAnswers = ref([])
+
+const quizQuestions = [
+  {
+    q: '你的眼袋用手向上推时会怎样？',
+    options: [
+      { label: '推起后眼袋基本消失', value: 'skin' },
+      { label: '推起后仍有明显凸起', value: 'fat' },
+      { label: '不太确定', value: 'mix' }
+    ]
+  },
+  {
+    q: '你的眼周皮肤状态如何？',
+    options: [
+      { label: '弹性好，基本没有细纹', value: 'good' },
+      { label: '有一些细纹，皮肤有点松', value: 'normal' },
+      { label: '明显松弛，皱纹较多', value: 'loose' }
+
+---------- 第 29 页 / 共 30 页 ----------
+
+    ]
+  },
+  {
+    q: '你更倾向哪种方式改善眼袋？',
+    options: [
+      { label: '手术，效果彻底持久', value: 'surgery' },
+      { label: '无创，不想动刀', value: 'noninvasive' },
+      { label: '先了解，再做决定', value: 'undecided' }
+    ]
+  }
+]
+
+const quizResult = computed(() => {
+  const [q1, q2, q3] = quizAnswers.value
+  if (q3 === 'noninvasive') {
+    return {
+      emoji: '✨',
+      title: '了解一下：无创改善方向的科普',
+      desc: '您倾向无创方式。相关科普资料中介绍了射频类、光电类等非手术方案的原理与适用范围。具体是否适合个体情况，需由执业医师面诊评估。'
+    }
+  }
+  if (q1 === 'fat' && q2 === 'good') {
+    return {
+      emoji: '🎯',
+      title: '了解一下：内切术式相关科普',
+      desc: '您的选项偏向脂肪型眼袋、皮肤弹性较好的特征。科普资料中介绍了经结膜入路术式的原理与注意事项，仅供了解，不构成诊疗建议。'
+    }
+  }
+  if (q1 === 'skin' || q2 === 'loose') {
+    return {
+      emoji: '💡',
+      title: '了解一下：外切与皮肤松弛相关科普',
+      desc: '您的选项与皮肤松弛相关。科普资料介绍了外切术式、脂肪重置等常见改善方向的基本原理与适用人群，具体需面诊评估。'
+    }
+  }
+  return {
+    emoji: '👨‍⚕️',
+    title: '建议面诊专业评估',
+    desc: '眼袋类型需由执业医师结合面部条件综合判断。您可以在"知识百科"继续阅读相关科普内容，或前往具备资质的医疗机构面诊咨询。'
+  }
+})
+
+function startQuiz() {
+  quizStep.value = 1
+  quizAnswers.value = []
+  quizVisible.value = true
+}
+
+function answerQuiz(value) {
+  quizAnswers.value.push(value)
+
+---------- 第 30 页 / 共 30 页 ----------

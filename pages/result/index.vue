@@ -3,7 +3,8 @@
     <view class="result-card">
       <view class="icon-success">✓</view>
       <text class="result-title">提交成功</text>
-      <text class="result-desc">感谢您的咨询，我们将在 24 小时内联系您</text>
+      <text class="result-desc">感谢您的留言，我们将尽快整理相关科普资料与您联系</text>
+      <text class="result-tip">本平台不提供诊疗服务，具体建议以合作医疗机构面诊为准</text>
     </view>
     <button class="back-btn" @click="goHome">返回首页</button>
   </view>
@@ -47,6 +48,16 @@ function goHome() {
   font-size: 28rpx;
   color: #999;
   margin-top: 16rpx;
+  padding: 0 40rpx;
+  text-align: center;
+}
+.result-tip {
+  font-size: 22rpx;
+  color: #bbb;
+  margin-top: 20rpx;
+  padding: 0 40rpx;
+  text-align: center;
+  line-height: 1.7;
 }
 .back-btn {
   margin-top: 80rpx;

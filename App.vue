@@ -1,37 +1,31 @@
 <script setup>
-import { ref } from 'vue'
 import { onLaunch, onShow } from '@dcloudio/uni-app'
 import {
   parseFromLaunchOptions,
-  parseFromClipboard,
   saveClickId,
   syncClickIdToCloud,
   reportAppInstall
 } from './utils/click-id.js'
 import { onLoginSuccess } from './utils/login-hook.js'
 
-const privacyPopupRef = ref(null)
+// iOS App Store 链接（提交 App Store 后填入真实 appid）
+// 示例：itms-apps://itunes.apple.com/cn/app/id1234567890
+const APP_STORE_URL = ''
 
 onLaunch(async (options) => {
   console.log('App Launch', options)
 
-  // 监听 uni-id-pages 登录成功事件，触发转化回传
-  uni.$on('uni-id-pages-login-success', () => {
-    onLoginSuccess({ isNewUser: true })
+  uni.$on('uni-id-pages-login-success', (e) => {
+    onLoginSuccess(e || {})
   })
 
-  // 1. 隐私政策必须最先弹出（合规要求）
   const privacyAgreed = uni.getStorageSync('privacy_agreed')
   if (!privacyAgreed) {
-    uni.setStorageSync('need_privacy_popup', true)
     return
   }
 
-
-  // 2. 获取 click_id（隐私同意后才执行）
   await handleClickId(options)
 
-  // 3. 检查 App 更新
   checkAppUpdate()
 })
 
@@ -40,20 +34,10 @@ onShow((options) => {
 })
 
 async function handleClickId(options) {
-  // 优先从启动参数获取
-  let result = parseFromLaunchOptions(options)
-
-  // 兜底：从剪切板获取
-  if (!result.clickId) {
-    result = await parseFromClipboard()
-  }
-
-  // 保存到本地
+  const result = parseFromLaunchOptions(options)
   if (result.clickId) {
     saveClickId(result)
-    // 异步同步到云端（不阻塞主流程）
     syncClickIdToCloud(result)
-    // 回传 App 激活事件到巨量引擎（仅首次，内部有幂等保护）
     reportAppInstall({ clickId: result.clickId, clientId: result.clientId })
   }
 }
@@ -61,54 +45,70 @@ async function handleClickId(options) {
 function checkAppUpdate() {
   // #ifdef APP-PLUS
   const systemInfo = uni.getSystemInfoSync()
+  const platform = systemInfo.osName
   uniCloud.callFunction({
     name: 'check-update',
     data: {
-      platform: systemInfo.osName,
+      platform,
       version_code: parseInt(systemInfo.appVersionCode || '0')
     }
   }).then(res => {
     const data = res.result
     if (!data || !data.needUpdate) return
 
-    if (data.updateType === 'force') {
-      uni.showModal({
-        title: '版本更新',
-        content: data.releaseNote || '发现新版本，请立即更新',
-        showCancel: false,
-        confirmText: '立即更新',
-        success() {
-          downloadAndInstall(data.downloadUrl)
-        }
-      })
-    } else {
-      uni.showModal({
-        title: '版本更新',
-        content: data.releaseNote || '发现新版本，是否更新？',
-        confirmText: '更新',
-        cancelText: '跳过',
-        success(modalRes) {
-          if (modalRes.confirm) {
-            downloadAndInstall(data.downloadUrl)
+    const isIOS = platform === 'ios'
+    const isForce = data.updateType === 'force'
+    const content = data.releaseNote || (isForce ? '发现新版本，请更新后使用' : '发现新版本，是否更新？')
+
+    uni.showModal({
+      title: '版本更新',
+      content,
+      showCancel: !isForce,
+      confirmText: '前往更新',
+      cancelText: isForce ? '' : '稍后',
+      success(modalRes) {
+        if (!modalRes.confirm) return
+        if (isIOS) {
+          // iOS 引导跳转 App Store，禁止下载 ipa 自升级（违反 Apple 3.3.2 / 4.7）
+          if (APP_STORE_URL) {
+            plus.runtime.openURL(APP_STORE_URL)
+          } else {
+            uni.showToast({ title: '请前往 App Store 搜索"靓人科普"更新', icon: 'none' })
           }
+        } else {
+          // Android：优先跳应用市场，其次走下载流程
+          openAndroidMarketOrDownload(data.downloadUrl)
         }
-      })
-    }
+      }
+    })
   }).catch(err => {
     console.error('check-update failed:', err)
   })
   // #endif
 }
 
+// #ifdef APP-PLUS
+function openAndroidMarketOrDownload(downloadUrl) {
+  try {
+    const pkg = plus.runtime.appid
+    plus.runtime.openURL('market://details?id=' + pkg, (err) => {
+      if (err && downloadUrl) {
+        downloadAndInstall(downloadUrl)
+      }
+    })
+  } catch (e) {
+    if (downloadUrl) downloadAndInstall(downloadUrl)
+  }
+}
+
 function downloadAndInstall(url) {
-  // #ifdef APP-PLUS
   uni.showLoading({ title: '下载中...' })
   uni.downloadFile({
     url,
     success(res) {
       uni.hideLoading()
       if (res.statusCode === 200) {
-        plus.runtime.install(res.tempFilePath, { force: true }, () => {
+        plus.runtime.install(res.tempFilePath, { force: false }, () => {
           plus.runtime.restart()
         }, (err) => {
           uni.showToast({ title: '安装失败', icon: 'none' })
@@ -121,8 +121,8 @@ function downloadAndInstall(url) {
       uni.showToast({ title: '下载失败', icon: 'none' })
     }
   })
-  // #endif
 }
+// #endif
 </script>
 
 <style>

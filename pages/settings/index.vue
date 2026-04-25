@@ -19,6 +19,10 @@
         <text class="menu-text">用户协议</text>
         <text class="menu-arrow">›</text>
       </view>
+      <view class="menu-item" @click="toggleTeenMode">
+        <text class="menu-text">青少年模式</text>
+        <text class="menu-value">{{ teenMode ? '已开启' : '未开启' }}</text>
+      </view>
     </view>
 
     <view class="menu-group">
@@ -37,8 +41,44 @@
 
 <script setup>
 import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 
 const cacheSize = ref('0 KB')
+const teenMode = ref(false)
+
+onShow(() => {
+  teenMode.value = !!uni.getStorageSync('teen_mode')
+})
+
+function toggleTeenMode() {
+  if (!teenMode.value) {
+    uni.showModal({
+      title: '开启青少年模式',
+      content: '开启后将屏蔽医美手术相关详细内容与"在线留言"等入口，仅展示通用护肤与健康知识。是否开启？',
+      confirmText: '开启',
+      success(res) {
+        if (res.confirm) {
+          uni.setStorageSync('teen_mode', true)
+          teenMode.value = true
+          uni.showToast({ title: '已开启', icon: 'success' })
+        }
+      }
+    })
+  } else {
+    uni.showModal({
+      title: '关闭青少年模式',
+      content: '关闭后将恢复全部内容展示，请确认您已年满 18 周岁。',
+      confirmText: '关闭',
+      success(res) {
+        if (res.confirm) {
+          uni.removeStorageSync('teen_mode')
+          teenMode.value = false
+          uni.showToast({ title: '已关闭', icon: 'success' })
+        }
+      }
+    })
+  }
+}
 
 function clearCache() {
   uni.showModal({
@@ -73,13 +113,32 @@ function handleLogout() {
 }
 
 function handleDeleteAccount() {
+  const token = uni.getStorageSync('uni_id_token')
+  if (!token) {
+    uni.showModal({
+      title: '请先登录',
+      content: '注销账号需要先登录当前账号',
+      confirmText: '去登录',
+      success(res) {
+        if (res.confirm) {
+          uni.navigateTo({
+            url: '/uni_modules/uni-id-pages/pages/login/login-withoutpwd'
+          })
+        }
+      }
+    })
+    return
+  }
   uni.showModal({
     title: '注销账号',
-    content: '注销后所有数据将被删除且无法恢复，确定要注销吗？',
+    content: '注销后，您的账号及留言记录等信息将按《隐私政策》说明的方式进行删除，且无法恢复。确定继续吗？',
     confirmColor: '#E91E63',
+    confirmText: '继续注销',
     success(res) {
       if (res.confirm) {
-        uni.showToast({ title: '请联系客服注销', icon: 'none' })
+        uni.navigateTo({
+          url: '/uni_modules/uni-id-pages/pages/userinfo/deactivate/deactivate'
+        })
       }
     }
   })

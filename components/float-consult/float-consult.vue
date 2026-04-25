@@ -1,7 +1,7 @@
 <template>
   <view class="float-consult" @click="goForm">
     <text class="float-icon">&#x1F4AC;</text>
-    <text class="float-text">免费咨询</text>
+    <text class="float-text">在线留言</text>
   </view>
 </template>
 

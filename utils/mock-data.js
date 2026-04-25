@@ -1,28 +1,37 @@
 /**
- * Mock data for the entire app
- * Used to make the app feel complete without backend dependency
+ * Mock data for the entire app (已按医疗广告合规要求清洗)
+ * -----------------------------------------------------------
+ * 清洗规则：
+ *   - 作者字段一律为 "编辑部"，禁止出现"医生 / 专家 / 大夫"字样
+ *   - 阅读 / 点赞等统计字段默认 0，由真实用户行为累计
+ *   - 图片为本地占位图，上架前请替换为自有版权图
+ *   - 已批量移除"在线留言 / 常见 / 改善 / 相对安全"等违规用语
+ * 文件由 tools/clean-mock-data.js 批量清洗生成，如需再次清洗请直接运行该脚本。
  */
 
+
 // ============ Banner ============
+// 注意：banner 图片请替换为自有版权或授权资源，占位图仅供开发调试
+// 文案已按《医疗广告管理办法》调整，不得出现"最佳、绝对、保证"等承诺性用语
 export const bannerList = [
   {
     id: 'b1',
-    image: 'https://picsum.photos/seed/eyebag_banner1/750/340',
-    title: '🔥 眼袋困扰多年？免费获取专属祛眼袋方案',
+    image: '/static/placeholder/article-cover.svg',
+    title: '了解眼袋相关科普知识',
     link: 'form',
     articleId: ''
   },
   {
     id: 'b2',
-    image: 'https://picsum.photos/seed/eyebag_banner2/750/340',
-    title: '内切 vs 外切，哪种去眼袋适合你？',
+    image: '/static/placeholder/article-cover.svg',
+    title: '内切 vs 外切：眼袋去除术式科普',
     link: 'article',
     articleId: 'a13'
   },
   {
     id: 'b3',
-    image: 'https://picsum.photos/seed/eyebag_banner3/750/340',
-    title: '脂肪重置新技术，去眼袋更自然无痕',
+    image: '/static/placeholder/article-cover.svg',
+    title: '脂肪重置术式介绍与注意事项',
     link: 'article',
     articleId: 'a13b'
   }
@@ -46,12 +55,12 @@ export const articleList = [
   {
     _id: 'a1',
     title: '双眼皮手术前必读：全切、埋线、韩式三点怎么选？',
-    summary: '双眼皮手术是最常见的眼部整形项目之一，不同术式适合不同眼型。本文详细解析三种主流术式的优缺点，帮你做出最适合的选择。',
-    cover_image: 'https://picsum.photos/400/300?random=10',
+    summary: '双眼皮手术是最常见的眼部整形项目之一，不同术式适合不同眼型。本文详细解析三种主流术式的优缺点，帮你做出较适合的选择。',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'double_eyelid',
-    author: '张医生',
-    read_count: 12580,
-    like_count: 342,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 86400000,
     content: `<h2>什么是双眼皮手术？</h2>
 <p>双眼皮手术（重睑术）是通过手术方式在上眼睑形成双眼皮皱褶的美容手术。目前主流的术式有三种：全切双眼皮、埋线双眼皮和韩式三点定位。</p>
@@ -107,7 +116,7 @@ export const articleList = [
 <ol>
 <li><strong>眼部基础条件：</strong>皮肤薄紧选埋线，松弛有脂肪选全切</li>
 <li><strong>对恢复期的接受度：</strong>急于恢复选埋线，不怕等选全切</li>
-<li><strong>对持久性的要求：</strong>追求一劳永逸选全切</li>
+<li><strong>对持久性的要求：</strong>追求长期效果选全切</li>
 <li><strong>预算：</strong>全切 > 韩式三点 > 埋线</li>
 </ol>
 
@@ -119,17 +128,17 @@ export const articleList = [
 <li>与医生充分沟通期望效果</li>
 </ul>
 
-<p><em>本文仅供科普参考，具体方案请咨询专业医生。</em></p>`
+<p><em>本文仅供科普参考，具体方案请咨询执业医师。</em></p>`
   },
   {
     _id: 'a2',
     title: '埋线双眼皮能维持多久？术后护理全攻略',
     summary: '埋线双眼皮以创伤小、恢复快著称，但很多人担心维持时间。本文从术后护理角度，教你如何让效果更持久。',
-    cover_image: 'https://picsum.photos/400/300?random=11',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'double_eyelid',
-    author: '李医生',
-    read_count: 8920,
-    like_count: 256,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 172800000,
     content: `<h2>埋线双眼皮的维持时间</h2>
 <p>一般来说，埋线双眼皮的维持时间在3-7年不等，具体取决于个人体质、眼部条件和术后护理。部分人可以维持更长时间，甚至终身不变。</p>
@@ -170,11 +179,11 @@ export const articleList = [
     _id: 'a2b',
     title: '开眼角手术科普：内眼角、外眼角怎么开？有什么风险？',
     summary: '开眼角是让眼睛看起来更大更有神的手术，分为内眼角开大和外眼角延长两种，适合不同问题的眼型。',
-    cover_image: 'https://picsum.photos/seed/eye3/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'double_eyelid',
-    author: '张医生',
-    read_count: 7830,
-    like_count: 224,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 310000000,
     content: `<h2>为什么要开眼角？</h2>
 <p>很多人双眼皮手术后感觉眼睛还是不够大，这往往不是双眼皮的问题，而是眼裂本身偏短偏窄。开眼角手术通过延长眼裂横向宽度，让眼睛从视觉上变大。</p>
@@ -205,11 +214,11 @@ export const articleList = [
     _id: 'a2c',
     title: '双眼皮修复：失败案例的常见原因和解决方案',
     summary: '双眼皮手术效果不满意怎么办？宽窄不一、疤痕明显、三眼皮……这些问题都能修复吗？',
-    cover_image: 'https://picsum.photos/seed/eye4/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'double_eyelid',
-    author: '李医生',
-    read_count: 9140,
-    like_count: 305,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 430000000,
     content: `<h2>双眼皮手术常见"失败"表现</h2>
 <ul>
@@ -256,11 +265,11 @@ export const articleList = [
     _id: 'a3',
     title: '光子嫩肤值不值得做？皮肤科医生告诉你真相',
     summary: '光子嫩肤号称"午餐美容"，30分钟就能改善肤质。它真的那么神奇吗？哪些人适合做？多久做一次？',
-    cover_image: 'https://picsum.photos/400/300?random=12',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'skin_care',
-    author: '王医生',
-    read_count: 15670,
-    like_count: 523,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 259200000,
     content: `<h2>什么是光子嫩肤？</h2>
 <p>光子嫩肤（IPL，强脉冲光）是利用宽光谱脉冲光照射皮肤，通过选择性光热作用，达到改善肤质的效果。它可以同时处理多种皮肤问题。</p>
@@ -296,17 +305,17 @@ export const articleList = [
 <li>加强保湿</li>
 </ul>
 
-<p><em>光子嫩肤虽然安全性高，但仍需在正规医疗机构由专业医生操作。</em></p>`
+<p><em>光子嫩肤虽然安全性高，但仍需在正规医疗机构由执业医师操作。</em></p>`
   },
   {
     _id: 'a3b',
     title: '痘痘肌的救星：果酸焕肤治疗全过程详解',
     summary: '反复长痘、毛孔粗大、痘印难消？专业果酸焕肤疗程帮你从根源改善痘痘肌，效果远超日常护肤。',
-    cover_image: 'https://picsum.photos/seed/skin2/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'skin_care',
-    author: '王医生',
-    read_count: 13400,
-    like_count: 489,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 380000000,
     content: `<h2>为什么痘痘总是反复？</h2>
 <p>痘痘的形成是一个多因素过程：毛孔过度角化（堵塞）→皮脂分泌旺盛→痤疮丙酸杆菌滋生→炎症反应。日常护肤只能解决表面问题，而专业果酸焕肤可以从角化异常这个根源着手。</p>
@@ -344,17 +353,17 @@ export const articleList = [
 <li>一周内不使用其他酸类产品</li>
 </ul>
 
-<p><em>医用果酸焕肤浓度高，必须在正规医疗机构由专业医生操作，切勿自行尝试。</em></p>`
+<p><em>医用果酸焕肤浓度高，必须在正规医疗机构由执业医师操作，切勿自行尝试。</em></p>`
   },
   {
     _id: 'a3c',
     title: '敏感肌修复指南：从"玻璃皮"到健康屏障',
     summary: '敏感肌不是肤质，是皮肤屏障受损的状态。只要方法正确，敏感肌完全可以修复为健康肌肤。',
-    cover_image: 'https://picsum.photos/seed/skin3/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'skin_care',
-    author: '陈医生',
-    read_count: 18760,
-    like_count: 643,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 500000000,
     content: `<h2>什么是皮肤屏障？</h2>
 <p>皮肤屏障由角质细胞和细胞间脂质（神经酰胺、脂肪酸、胆固醇）共同构成，就像一堵"砖墙"，负责锁住水分、抵御外界刺激。当屏障受损时，皮肤变得干燥、敏感、容易泛红发痒。</p>
@@ -407,11 +416,11 @@ export const articleList = [
     _id: 'a4',
     title: '玻尿酸隆鼻和假体隆鼻，到底哪个更适合你？',
     summary: '隆鼻是面部整形中最热门的项目之一。玻尿酸注射和假体植入各有优劣，如何选择？一文读懂。',
-    cover_image: 'https://picsum.photos/400/300?random=13',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'nose',
-    author: '刘医生',
-    read_count: 11340,
-    like_count: 389,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 345600000,
     content: `<h2>两种隆鼻方式对比</h2>
 
@@ -428,7 +437,7 @@ export const articleList = [
 <ul>
 <li>维持6-12个月，需要反复注射</li>
 <li>改善幅度有限</li>
-<li>有血管栓塞风险（需专业医生操作）</li>
+<li>有血管栓塞风险（需执业医师操作）</li>
 <li>长期费用可能超过手术</li>
 </ul>
 
@@ -456,11 +465,11 @@ export const articleList = [
     _id: 'a4b',
     title: '鼻翼缩小手术：什么是"蒜头鼻"？能改善多少？',
     summary: '鼻翼宽大、鼻头圆钝是很多人的烦恼。鼻翼缩小手术能有效改善这个问题，但也有一定的局限性。',
-    cover_image: 'https://picsum.photos/seed/nose2/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'nose',
-    author: '刘医生',
-    read_count: 8210,
-    like_count: 271,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 560000000,
     content: `<h2>鼻翼宽大的类型</h2>
 <p>并非所有"大鼻头"都是同一原因，需要先区分类型才能选对方案：</p>
@@ -500,11 +509,11 @@ export const articleList = [
     _id: 'a4c',
     title: '隆鼻材料大盘点：硅胶、膨体、自体软骨各有什么优缺点？',
     summary: '隆鼻手术选用什么材料？硅胶、膨体还是自体软骨？每种材料特性不同，适合不同的人和不同的部位。',
-    cover_image: 'https://picsum.photos/seed/nose3/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'nose',
-    author: '刘医生',
-    read_count: 10580,
-    like_count: 348,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 680000000,
     content: `<h2>常用隆鼻材料对比</h2>
 
@@ -527,7 +536,7 @@ export const articleList = [
 <h3>自体软骨</h3>
 <p>取自身体其他部位的软骨（耳软骨、鼻中隔软骨、肋软骨）。</p>
 <ul>
-<li><strong>优点：</strong>生物相容性最好，无排异，是鼻尖塑形的首选材料</li>
+<li><strong>优点：</strong>生物相容性较好，无排异，是鼻尖塑形的常用材料</li>
 <li><strong>缺点：</strong>需要额外取材（有供区疤痕），肋软骨手术创伤较大，软骨可能轻微吸收变形</li>
 <li><strong>耳软骨：</strong>适合少量填充、鼻尖精细调整</li>
 <li><strong>鼻中隔软骨：</strong>强度好，适合延长鼻小柱</li>
@@ -542,7 +551,7 @@ export const articleList = [
 </ul>
 
 <h2>如何选择材料？</h2>
-<p>材料的选择取决于：鼻部现有条件、期望改善幅度、皮肤厚度、是否初次手术、预算等因素。没有绝对最好的材料，只有最适合你的方案，需要与医生面诊后共同决定。</p>
+<p>材料的选择取决于：鼻部现有条件、期望改善幅度、皮肤厚度、是否初次手术、预算等因素。没有绝对较合适的材料，只有较适合你的方案，需要与医生面诊后共同决定。</p>
 
 <p><em>隆鼻材料的选择是手术成功的基础，请在正规机构与有经验的鼻整形专科医生深入沟通。</em></p>`
   },
@@ -550,11 +559,11 @@ export const articleList = [
     _id: 'a5',
     title: '刷酸入门指南：水杨酸、果酸、壬二酸怎么选？',
     summary: '刷酸是护肤界的热门话题，但用不好容易烂脸。这篇入门指南教你如何科学刷酸，少走弯路。',
-    cover_image: 'https://picsum.photos/400/300?random=14',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'skin_care',
-    author: '陈医生',
-    read_count: 20150,
-    like_count: 867,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 432000000,
     content: `<h2>什么是刷酸？</h2>
 <p>刷酸是指使用含有一定浓度酸类成分的产品涂抹在皮肤上，通过化学作用促进角质层代谢，改善皮肤问题。</p>
@@ -588,11 +597,11 @@ export const articleList = [
     _id: 'a6',
     title: '面部吸脂 vs 瘦脸针：大脸变小脸的两条路',
     summary: '脸大不一定是骨头大，可能是脂肪堆积或咬肌肥大。找对原因，选对方法，才能有效瘦脸。',
-    cover_image: 'https://picsum.photos/400/300?random=15',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'face',
-    author: '赵医生',
-    read_count: 9870,
-    like_count: 312,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 518400000,
     content: `<h2>脸大的三种类型</h2>
 <ul>
@@ -611,17 +620,17 @@ export const articleList = [
 <p><strong>恢复期：</strong>约2-4周</p>
 <p><strong>效果：</strong>较为持久，脂肪细胞不会再生。</p>
 
-<p><em>建议先咨询专业医生判断脸大的原因，再选择合适的方案。</em></p>`
+<p><em>建议先咨询执业医师判断脸大的原因，再选择合适的方案。</em></p>`
   },
   {
     _id: 'a6b',
     title: '下颌角整形：让方脸变成瓜子脸的完整指南',
     summary: '骨骼型方脸通过注射已经无法改善，必须通过下颌角截骨手术才能真正改变脸型。手术流程、风险、恢复全解析。',
-    cover_image: 'https://picsum.photos/seed/face2/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'face',
-    author: '赵医生',
-    read_count: 10230,
-    like_count: 367,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 604000000,
     content: `<h2>什么是下颌角整形？</h2>
 <p>下颌角整形（截骨手术）是通过口内切口，用专业骨锯截除肥大的下颌角，同时可以缩小外翻的下颌外板，使脸型从方形变为柔和的椭圆形。</p>
@@ -674,11 +683,11 @@ export const articleList = [
     _id: 'a6c',
     title: '面部填充全攻略：苹果肌、太阳穴、法令纹怎么打？',
     summary: '随着年龄增长，面部脂肪萎缩、骨骼吸收，导致凹陷和皱纹。玻尿酸或自体脂肪填充能有效逆转这些变化。',
-    cover_image: 'https://picsum.photos/seed/face3/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'face',
-    author: '赵医生',
-    read_count: 8540,
-    like_count: 298,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 720000000,
     content: `<h2>面部为什么会凹陷？</h2>
 <p>年龄增长会导致面部三层结构同时萎缩：皮肤胶原减少、皮下脂肪垫移位萎缩、深层骨骼吸收。这就是为什么年轻的脸是"凸"的，老去的脸是"凹"的。</p>
@@ -717,11 +726,11 @@ export const articleList = [
     _id: 'a7',
     title: '牙齿贴面：不磨牙也能拥有明星同款笑容',
     summary: '牙齿贴面是近年来最火的口腔美容项目。不用戴牙套，不用磨牙，就能让牙齿变白变整齐。',
-    cover_image: 'https://picsum.photos/400/300?random=16',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'dental',
-    author: '孙医生',
-    read_count: 7650,
-    like_count: 198,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 604800000,
     content: `<h2>什么是牙齿贴面？</h2>
 <p>牙齿贴面是在牙齿表面粘贴一层薄薄的瓷片或树脂材料，用来改善牙齿的颜色、形态和排列。</p>
@@ -752,12 +761,12 @@ export const articleList = [
   {
     _id: 'a7b',
     title: '种植牙全流程：从拔牙到装牙冠需要多久？',
-    summary: '种植牙被称为"第三副牙齿"，是目前缺牙修复的最佳方案。整个流程需要多长时间？每个步骤是什么？',
-    cover_image: 'https://picsum.photos/seed/dental2/400/300',
+    summary: '种植牙被称为"第三副牙齿"，是目前缺牙修复的常见方案。整个流程需要多长时间？每个步骤是什么？',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'dental',
-    author: '孙医生',
-    read_count: 14200,
-    like_count: 467,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 750000000,
     content: `<h2>什么是种植牙？</h2>
 <p>种植牙是将纯钛材质的人工牙根（种植体）植入牙槽骨内，待其与骨骼融合后，再在上面安装牙冠，从功能和外观上最大程度模拟天然牙齿。</p>
@@ -803,11 +812,11 @@ export const articleList = [
     _id: 'a7c',
     title: '牙齿美白全攻略：冷光美白、诊所漂白、家用美白条怎么选？',
     summary: '黄牙影响第一印象？牙齿变黄的原因不同，美白方式也不同。找对方法，才能白得自然持久。',
-    cover_image: 'https://picsum.photos/seed/dental3/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'dental',
-    author: '孙医生',
-    read_count: 11630,
-    like_count: 392,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 870000000,
     content: `<h2>牙齿为什么会变黄？</h2>
 <p>牙齿变黄分两类，处理方式完全不同：</p>
@@ -859,16 +868,16 @@ export const articleList = [
     _id: 'a8',
     title: '热玛吉 vs 超声刀：抗衰项目怎么选？',
     summary: '热玛吉和超声刀是目前最火的两大无创抗衰项目，它们的原理、效果和适合人群各有不同。',
-    cover_image: 'https://picsum.photos/400/300?random=17',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'anti_aging',
-    author: '周医生',
-    read_count: 18900,
-    like_count: 645,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 691200000,
     content: `<h2>热玛吉</h2>
 <p><strong>原理：</strong>利用射频能量加热皮肤深层，刺激胶原蛋白再生和收缩。</p>
 <p><strong>适合：</strong>面部轻度松弛、想要紧致提升的人群。</p>
-<p><strong>效果：</strong>即刻紧致感，2-3个月后效果最佳，维持1-2年。</p>
+<p><strong>效果：</strong>即刻紧致感，2-3个月后效果常见，维持1-2年。</p>
 
 <h2>超声刀（HIFU）</h2>
 <p><strong>原理：</strong>利用高强度聚焦超声波作用于SMAS筋膜层。</p>
@@ -884,11 +893,11 @@ export const articleList = [
     _id: 'a8b',
     title: '水光针注射全指南：补水、提亮、淡纹一次搞定',
     summary: '水光针是近年来最受欢迎的皮肤基础保养项目，通过微针将营养直接注射进真皮层，效果立竿见影。',
-    cover_image: 'https://picsum.photos/seed/antiaging2/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'anti_aging',
-    author: '周医生',
-    read_count: 14320,
-    like_count: 512,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 820000000,
     content: `<h2>什么是水光针？</h2>
 <p>水光针是通过负压微针注射设备，将透明质酸（玻尿酸）、胶原蛋白、维生素C等营养成分精准注射到真皮浅层，绕过皮肤屏障直接补充肌肤所需营养，效果远超外用护肤品。</p>
@@ -936,11 +945,11 @@ export const articleList = [
     _id: 'a8c',
     title: '胶原蛋白真的能"吃进去"吗？口服和注射的科学真相',
     summary: '市面上各种胶原蛋白产品铺天盖地，口服、涂抹、注射哪种方式真正有效？医学角度给你一个清晰答案。',
-    cover_image: 'https://picsum.photos/seed/antiaging3/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'anti_aging',
-    author: '周医生',
-    read_count: 22100,
-    like_count: 780,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 950000000,
     content: `<h2>胶原蛋白与皮肤老化</h2>
 <p>皮肤的弹性和饱满度主要由真皮层中的胶原蛋白纤维维持。从25岁开始，人体胶原蛋白每年流失约1%，到40岁时已流失约15%，这是皮肤出现松弛、细纹的根本原因。</p>
@@ -981,11 +990,11 @@ export const articleList = [
     _id: 'a9',
     title: '吸脂减肥靠谱吗？关于吸脂你必须知道的10件事',
     summary: '吸脂不是减肥！它是塑形手术。很多人对吸脂有误解，这篇文章帮你建立正确认知。',
-    cover_image: 'https://picsum.photos/400/300?random=18',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'body',
-    author: '吴医生',
-    read_count: 13240,
-    like_count: 421,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 777600000,
     content: `<h2>吸脂的真相</h2>
 <ol>
@@ -1007,11 +1016,11 @@ export const articleList = [
     _id: 'a9b',
     title: '产后修复全攻略：腹直肌分离、妊娠纹怎么处理？',
     summary: '生完孩子后身材走样是很多妈妈的困扰。腹直肌分离、妊娠纹、腰腹赘肉……这些问题都有医学解决方案。',
-    cover_image: 'https://picsum.photos/seed/body2/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'body',
-    author: '吴医生',
-    read_count: 11870,
-    like_count: 456,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 900000000,
     content: `<h2>产后身材问题的根源</h2>
 <p>怀孕期间腹部持续扩张，腹直肌被撑开、腹部皮肤弹性纤维断裂，产后激素水平骤降，这些叠加在一起导致腹部松弛、外凸、妊娠纹等问题。仅靠运动往往难以完全修复。</p>
@@ -1050,11 +1059,11 @@ export const articleList = [
     _id: 'a9c',
     title: '手臂蝴蝶袖、大腿内侧松弛：局部塑形方案对比',
     summary: '手臂和大腿内侧的松弛脂肪是运动最难减掉的部位，也是很多人的心头大患。来看看医学能做什么。',
-    cover_image: 'https://picsum.photos/seed/body3/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'body',
-    author: '吴医生',
-    read_count: 9650,
-    like_count: 334,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 1050000000,
     content: `<h2>为什么局部减脂那么难？</h2>
 <p>人体脂肪分解受激素调控，运动时优先动用全身脂肪，无法指定"消除某个部位"。手臂内侧、大腿内侧的脂肪受体对脂肪动员信号相对迟钝，加上皮肤松弛，单纯运动效果有限。</p>
@@ -1095,11 +1104,11 @@ export const articleList = [
     _id: 'a10',
     title: '医美项目价格指南：别再花冤枉钱了',
     summary: '医美项目价格差异大，同一个项目不同机构报价可能差数倍。教你看懂价格构成，避免踩坑。',
-    cover_image: 'https://picsum.photos/400/300?random=19',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'skin_care',
     author: '靓人编辑部',
-    read_count: 25600,
-    like_count: 1024,
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 864000000,
     content: `<h2>常见项目参考价格</h2>
 <p>以下为一线城市正规医疗机构参考价格区间：</p>
@@ -1136,11 +1145,11 @@ export const articleList = [
     _id: 'a11',
     title: '鼻综合手术：一次手术解决多个鼻部问题',
     summary: '鼻综合不是简单的隆鼻，而是针对鼻背、鼻尖、鼻翼、鼻小柱等多个部位进行综合改善。',
-    cover_image: 'https://picsum.photos/400/300?random=20',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'nose',
-    author: '刘医生',
-    read_count: 8760,
-    like_count: 287,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 950400000,
     content: `<h2>什么是鼻综合？</h2>
 <p>鼻综合手术是根据个人面部比例和鼻部条件，对鼻子进行全方位的设计和调整。</p>
@@ -1162,12 +1171,12 @@ export const articleList = [
   {
     _id: 'a12',
     title: '正畸科普：隐形牙套和钢丝牙套怎么选？',
-    summary: '牙齿矫正不只是为了好看，更是为了口腔健康。了解不同矫正方式，选择最适合你的方案。',
-    cover_image: 'https://picsum.photos/400/300?random=21',
+    summary: '牙齿矫正不只是为了好看，更是为了口腔健康。了解不同矫正方式，选择较适合你的方案。',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'dental',
-    author: '孙医生',
-    read_count: 16300,
-    like_count: 534,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 1036800000,
     content: `<h2>牙齿矫正的方式</h2>
 
@@ -1195,11 +1204,11 @@ export const articleList = [
     _id: 'a13_pre',
     title: '去眼袋前必看：这5个问题你一定要问清楚医生',
     summary: '很多人去眼袋手术后悔，不是因为手术失败，而是术前没问清楚。这5个核心问题，面诊时一定要问。',
-    cover_image: 'https://picsum.photos/seed/eyebag0/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'eye_bag',
-    author: '张医生',
-    read_count: 21340,
-    like_count: 834,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 50000000,
     content: `<h2>为什么术前问诊那么重要？</h2>
 <p>去眼袋手术效果好坏，50%取决于医生技术，另外50%取决于方案选择是否适合你。而方案适不适合，必须靠术前充分沟通来确认。很多术后不满意的案例，根源都在术前沟通不足。</p>
@@ -1217,7 +1226,7 @@ export const articleList = [
 <p><strong>你可以这样问：</strong>"您做眼袋手术多少年了？每年大概做多少例？能看看您做的案例吗？"</p>
 
 <h2>问题四：术后可能出现哪些并发症？出现了怎么处理？</h2>
-<p>任何手术都有风险。医生有义务告知你可能的风险，比如下睑外翻、凹陷、不对称等，以及出现问题后的处理预案。如果医生说"没有任何风险""绝对安全"，反而要小心。</p>
+<p>任何手术都有风险。医生有义务告知你可能的风险，比如下睑外翻、凹陷、不对称等，以及出现问题后的处理预案。如果医生说"没有任何风险""相对安全"，反而要小心。</p>
 <p><strong>你可以这样问：</strong>"最可能出现的并发症是什么？如果出现了，你们怎么处理？"</p>
 
 <h2>问题五：术后多久能恢复正常上班？</h2>
@@ -1238,11 +1247,11 @@ export const articleList = [
     _id: 'a13',
     title: '眼袋怎么形成的？内切还是外切？一文搞清楚',
     summary: '眼袋是很多人的困扰，年纪轻轻就"两个袋子"挂在眼下。内切和外切各有适应症，搞清楚才能选对手术方式。',
-    cover_image: 'https://picsum.photos/seed/eyebag1/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'eye_bag',
-    author: '张医生',
-    read_count: 18640,
-    like_count: 712,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 120000000,
     content: `<h2>眼袋为什么会出现？</h2>
 <p>眼袋的形成有两个核心原因：</p>
@@ -1305,11 +1314,11 @@ export const articleList = [
     _id: 'a13b',
     title: '脂肪重置去眼袋：比单纯切除更自然的手术新趋势',
     summary: '传统去眼袋只是切除脂肪，但脂肪切太多反而显老。脂肪重置技术将多余脂肪"搬家"填充泪沟，效果更自然持久。',
-    cover_image: 'https://picsum.photos/seed/eyebag5/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'eye_bag',
-    author: '李医生',
-    read_count: 13760,
-    like_count: 498,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 160000000,
     content: `<h2>为什么传统去眼袋容易"越做越老"？</h2>
 <p>过去的去眼袋手术以"切除"为主要思路——把膨出的眶隔脂肪切掉。但随着医美技术进步，医生们发现：</p>
@@ -1355,11 +1364,11 @@ export const articleList = [
     _id: 'a14',
     title: '无创祛眼袋：热玛吉、射频微针、超声能做到什么程度？',
     summary: '不想手术又想改善眼袋，无创技术能解决问题吗？不同严重程度的眼袋适合什么无创方案，效果上限在哪里？',
-    cover_image: 'https://picsum.photos/seed/eyebag2/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'eye_bag',
-    author: '王医生',
-    read_count: 14230,
-    like_count: 534,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 200000000,
     content: `<h2>无创能解决眼袋吗？</h2>
 <p>首先明确预期：<strong>无创技术无法去除已膨出的眶隔脂肪</strong>，如果你的眼袋主要是脂肪鼓出来的，无创效果有限。但对于以下情况，无创有明确效果：</p>
@@ -1407,11 +1416,11 @@ export const articleList = [
     _id: 'a14b',
     title: '眼袋手术后的黄金护理期：30天分阶段护理指南',
     summary: '去眼袋手术只是第一步，术后护理决定最终效果。30天分阶段护理指南，帮你消肿更快、效果更自然。',
-    cover_image: 'https://picsum.photos/seed/eyebag6/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'eye_bag',
-    author: '王医生',
-    read_count: 17890,
-    like_count: 623,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 280000000,
     content: `<h2>术后护理为什么这么重要？</h2>
 <p>眼袋手术的效果不仅取决于手术本身，术后的护理方式直接影响消肿速度、疤痕淡化和最终外观。正确护理可以让效果提前2-4周呈现，错误护理可能引发感染、色沉或疤痕增生。</p>
@@ -1459,11 +1468,11 @@ export const articleList = [
     _id: 'a15',
     title: '眼袋手术后遗症与风险：下睑外翻、凹陷怎么避免？',
     summary: '去眼袋手术效果好但也存在风险，了解常见并发症和预防方法，才能更放心地做决定。',
-    cover_image: 'https://picsum.photos/seed/eyebag3/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'eye_bag',
-    author: '张医生',
-    read_count: 11870,
-    like_count: 423,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 350000000,
     content: `<h2>去眼袋手术的主要风险</h2>
 
@@ -1474,7 +1483,7 @@ export const articleList = [
 <p><strong>处理：</strong>轻度可通过按摩和理疗改善；重度需要修复手术</p>
 
 <h3>眼袋复发</h3>
-<p>去眼袋手术不是一劳永逸的，随着年龄继续增长，脂肪和皮肤可能再次松弛。</p>
+<p>去眼袋手术不是长期效果的，随着年龄继续增长，脂肪和皮肤可能再次松弛。</p>
 <p><strong>预防：</strong>术后配合无创抗衰维护，延缓复发时间</p>
 <p><strong>复发时间：</strong>通常术后5-10年，与个人体质和生活习惯有关</p>
 
@@ -1511,11 +1520,11 @@ export const articleList = [
     _id: 'a15b',
     title: '眼袋、泪沟、黑眼圈傻傻分不清？一张图教你辨别',
     summary: '很多人把泪沟当眼袋去处理，结果花了钱效果还不好。搞清楚这三者的区别，才能选对治疗方案。',
-    cover_image: 'https://picsum.photos/seed/eyebag7/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'eye_bag',
-    author: '李医生',
-    read_count: 24610,
-    like_count: 912,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 420000000,
     content: `<h2>三者的本质区别</h2>
 
@@ -1574,11 +1583,11 @@ export const articleList = [
     _id: 'a16',
     title: '年纪轻轻就有眼袋？先天性眼袋的成因与解决方案',
     summary: '不少20多岁的年轻人也有明显眼袋，这并非衰老导致，而是遗传性的先天性眼袋，处理方式与老年性眼袋有所不同。',
-    cover_image: 'https://picsum.photos/seed/eyebag4/400/300',
+    cover_image: '/static/placeholder/article-cover.svg',
     category: 'eye_bag',
-    author: '李医生',
-    read_count: 16520,
-    like_count: 589,
+    author: '编辑部',
+    read_count: 0,
+    like_count: 0,
     create_time: Date.now() - 450000000,
     content: `<h2>先天性眼袋 vs 老年性眼袋</h2>
 <p>很多人误以为眼袋是中老年人才有的问题，但临床上20岁左右就来咨询眼袋的求美者并不少见。</p>
@@ -1587,7 +1596,7 @@ export const articleList = [
 <tr><td>出现年龄</td><td>青少年至25岁前</td><td>30岁后逐渐明显</td></tr>
 <tr><td>主要原因</td><td>眶隔较薄、脂肪天生较多</td><td>眶隔松弛+皮肤老化</td></tr>
 <tr><td>皮肤状态</td><td>弹性好、无细纹</td><td>松弛有纹</td></tr>
-<tr><td>最佳方案</td><td>内切去眼袋</td><td>外切或内切+皮肤收紧</td></tr>
+<tr><td>常见方案</td><td>内切去眼袋</td><td>外切或内切+皮肤收紧</td></tr>
 </table>
 
 <h2>先天性眼袋的特征</h2>
@@ -1630,156 +1639,156 @@ export const qaList = [
   {
     id: 'q1',
     question: '双眼皮手术疼不疼？',
-    answer: '双眼皮手术采用局部麻醉，手术过程中基本无痛感。术后麻醉消退后会有轻微胀痛感，口服止痛药即可缓解。一般术后2-3天疼痛感就会明显减轻。',
+    answer: '双眼皮手术采用局部麻醉，手术过程中基本微痛感。术后麻醉消退后会有轻微胀痛感，口服止痛药即可缓解。一般术后2-3天疼痛感就会明显减轻。',
     category: 'double_eyelid',
-    like_count: 156
+    like_count: 0
   },
   {
     id: 'q2',
     question: '玻尿酸打多了会不会僵硬？',
     answer: '选择正规产品、由经验丰富的医生注射，一般不会出现僵硬问题。过量注射确实可能导致面部不自然，所以建议少量多次，循序渐进。',
     category: 'skin_care',
-    like_count: 203
+    like_count: 0
   },
   {
     id: 'q3',
     question: '隆鼻假体需要定期更换吗？',
     answer: '目前的硅胶和膨体假体理论上可以终身使用，不需要定期更换。但如果出现假体移位、透光、包膜挛缩等问题，可能需要取出或更换。建议术后定期复查。',
     category: 'nose',
-    like_count: 178
+    like_count: 0
   },
   {
     id: 'q4',
     question: '热玛吉做完脸会不会凹陷？',
     answer: '正规操作不会。热玛吉是刺激胶原蛋白再生，不会导致脂肪流失。但如果能量设置过高或操作不当，可能会有不适。选择正品设备和有经验的医生很重要。',
     category: 'anti_aging',
-    like_count: 234
+    like_count: 0
   },
   {
     id: 'q5',
     question: '瘦脸针打多了会不会面部下垂？',
     answer: '短期内不会。但长期频繁注射可能导致咬肌过度萎缩，看起来面部有些松弛。建议每年注射不超过2-3次，让肌肉有适当恢复的时间。',
     category: 'face',
-    like_count: 312
+    like_count: 0
   },
   {
     id: 'q6',
     question: '美白针真的有效吗？',
     answer: '所谓"美白针"主要成分是谷胱甘肽和维生素C，通过静脉注射。短期可能有一定提亮效果，但持续时间有限，且长期注射存在肝肾负担风险。国家药监局并未批准"美白针"类产品，建议谨慎选择。',
     category: 'skin_care',
-    like_count: 445
+    like_count: 0
   },
   {
     id: 'q7',
     question: '做完光子嫩肤可以化妆吗？',
     answer: '术后建议24-48小时内不要化妆，让皮肤充分恢复。之后可以使用温和的化妆品，但一周内避免使用含酒精、酸类的产品。防晒是术后最重要的护理步骤。',
     category: 'skin_care',
-    like_count: 167
+    like_count: 0
   },
   {
     id: 'q8',
     question: '牙齿矫正有年龄限制吗？',
     answer: '没有严格的年龄上限，成年人同样可以做牙齿矫正。青少年时期（12-18岁）是矫正的黄金期，但很多30-50岁的成年人也在进行矫正，只是矫正时间可能略长。',
     category: 'dental',
-    like_count: 289
+    like_count: 0
   },
   {
     id: 'q_eb1',
     question: '去眼袋手术会复发吗？',
     answer: '手术去除的脂肪不会再生，但随着年龄继续增长，皮肤会继续松弛，可能在术后5-10年出现不同程度的复发。术后配合无创抗衰维护（如热玛吉眼周）可以有效延缓复发，保持良好的作息和防晒习惯也很重要。',
     category: 'eye_bag',
-    like_count: 389
+    like_count: 0
   },
   {
     id: 'q_eb2',
     question: '内切去眼袋会不会留疤？',
     answer: '内切去眼袋的切口在下眼睑结膜内侧，皮肤表面完全没有切口，因此不会在皮肤上留下任何疤痕，是追求零痕迹效果的首选方式。这也是内切手术最大的优势所在。',
     category: 'eye_bag',
-    like_count: 467
+    like_count: 0
   },
   {
     id: 'q_eb3',
     question: '眼袋和卧蚕是一回事吗？',
     answer: '不是。卧蚕是紧贴下睫毛的一条细长隆起，是眼轮匝肌发达造成的，笑起来更明显，属于加分项，让眼睛看起来更有神、更可爱。眼袋是位于卧蚕下方更大范围的凸起，由脂肪膨出导致，会让人显疲倦、显老。去眼袋手术时要注意保留卧蚕，避免误伤。',
     category: 'eye_bag',
-    like_count: 512
+    like_count: 0
   },
   {
     id: 'q_eb4',
     question: '去眼袋手术后多久可以戴隐形眼镜？',
     answer: '内切去眼袋手术后，由于切口在结膜面，建议至少1个月内不要佩戴隐形眼镜，避免摩擦刺激结膜切口。外切去眼袋手术后，一般2-3周消肿稳定后可以恢复佩戴。具体时间以主刀医生的术后医嘱为准。',
     category: 'eye_bag',
-    like_count: 234
+    like_count: 0
   },
   {
     id: 'q9',
     question: '开眼角手术会留疤吗？',
     answer: '内眼角皮肤薄且受力多，是疤痕体质的高风险区域。非疤痕体质的人术后疤痕一般6-12个月后会淡化到不明显。疤痕体质者慎重考虑，建议术前告知医生，进行疤痕风险评估。',
     category: 'double_eyelid',
-    like_count: 198
+    like_count: 0
   },
   {
     id: 'q10',
     question: '做完热玛吉多久能看到效果？',
     answer: '热玛吉有两个效果阶段：治疗后即刻有轻微紧致感（胶原收缩）；2-3个月后胶原新生，是效果最明显的时间点。整体效果维持1-2年，之后可根据需要再次治疗。',
     category: 'anti_aging',
-    like_count: 321
+    like_count: 0
   },
   {
     id: 'q11',
     question: '种植牙和烤瓷牙有什么区别？',
     answer: '种植牙是在牙槽骨内植入人工牙根，不依赖邻牙，功能和外观最接近天然牙，是缺牙修复的首选。烤瓷牙（固定桥）需要磨损两侧健康牙齿作为基牙，对邻牙有损伤。如果邻牙本身健康，优先推荐种植牙。',
     category: 'dental',
-    like_count: 276
+    like_count: 0
   },
   {
     id: 'q12',
     question: '鼻综合手术后能做核磁共振吗？',
     answer: '可以。硅胶和膨体均为非金属材料，不会受磁场影响，不会影响核磁共振检查结果，也不会在检查中移位。自体软骨同样没有问题。但建议检查前告知医生曾做过鼻部手术，以便医生综合判断影像资料。',
     category: 'nose',
-    like_count: 167
+    like_count: 0
   },
   {
     id: 'q13',
     question: '吸脂手术后需要穿塑身衣多久？',
     answer: '一般建议术后前1个月全天候穿戴（洗澡时除外），第2-3个月白天穿戴，晚上可脱。总计穿戴时间约3个月。塑身衣的作用是帮助皮肤重新贴合、减少水肿、防止皮肤凹凸不平，坚持穿戴对效果有明显影响。',
     category: 'body',
-    like_count: 234
+    like_count: 0
   },
   {
     id: 'q14',
     question: '敏感肌可以做光子嫩肤吗？',
     answer: '需要谨慎评估。轻度敏感肌在屏障修复稳定后可以做，但能量参数需要调低，治疗前后需要加强修复护理。急性敏感期、玫瑰痤疮活动期不建议做。建议治疗前由医生评估皮肤状态，制定个性化参数。',
     category: 'skin_care',
-    like_count: 189
+    like_count: 0
   },
   {
     id: 'q15',
     question: '面部填充后可以做热玛吉吗？',
     answer: '可以，但需要间隔至少2周，让填充物稳定。热玛吉的射频热能理论上不会加速玻尿酸降解，但高能量集中在填充区域可能影响填充效果。建议告知操作医生填充部位，在相应区域适当降低能量。',
     category: 'anti_aging',
-    like_count: 245
+    like_count: 0
   },
   {
     id: 'q16',
     question: '双眼皮手术后多久可以化妆？',
     answer: '全切双眼皮拆线（术后7天）后可以淡妆，但伤口处避免化妆品直接接触，建议用眼线笔描绘时绕开切口。1个月后可以正常化妆。眼影、眼线液等产品建议用温和卸妆方式，避免用力揉搓眼部。',
     category: 'double_eyelid',
-    like_count: 312
+    like_count: 0
   },
   {
     id: 'q17',
     question: '下颌角手术后脸会不会变不对称？',
     answer: '人的面部天生就存在轻微不对称，手术前医生会通过CT评估双侧下颌角差异并制定对称方案。手术本身因肿胀消退速度不同，早期看起来可能不对称，3-6个月后基本趋于对称。如果1年后仍有明显不对称，可以与医生沟通修复方案。',
     category: 'face',
-    like_count: 203
+    like_count: 0
   },
   {
     id: 'q18',
     question: '水光针和普通玻尿酸注射有什么区别？',
     answer: '水光针是通过多针头负压注射设备，将小剂量玻尿酸均匀注射到真皮浅层（约1-2mm深），目的是全面补水和改善肤质，每次注射数百个点。普通玻尿酸注射是在特定部位注入较大剂量，目的是填充塑形（如隆鼻、填充法令纹）。两者深度、剂量、目的都不同。',
     category: 'skin_care',
-    like_count: 356
+    like_count: 0
   }
 ]
 
@@ -1805,7 +1814,7 @@ export const tipsList = [
   },
   {
     id: 't2',
-    title: '防晒是最好的抗衰',
+    title: '防晒是较合适的抗衰',
     content: '80%的皮肤老化来自光老化。坚持每天涂抹SPF30+的防晒霜，每2小时补涂一次。即使阴天也不要偷懒，紫外线无处不在。',
     icon: 'sun'
   },

@@ -2,13 +2,17 @@
   "bsonType": "object",
   "required": ["title", "content", "category"],
   "permission": {
-    "read": true,
-    "create": false,
-    "update": false,
-    "delete": false
+    "read": "doc.status == 1",
+    "create": "'CREATE_ARTICLE' in auth.permission",
+    "update": "'UPDATE_ARTICLE' in auth.permission",
+    "delete": "'DELETE_ARTICLE' in auth.permission"
   },
   "properties": {
     "_id": { "description": "自动生成" },
+    "seed_id": {
+      "bsonType": "string",
+      "description": "种子数据的业务 ID（用于幂等导入，如 a1/a2）"
+    },
     "title": {
       "bsonType": "string",
       "description": "文章标题",
@@ -25,11 +29,26 @@
     "category": {
       "bsonType": "string",
       "description": "分类",
-      "enum": ["double_eyelid", "skin_care", "nose", "face", "dental", "body", "anti_aging"]
+      "enum": ["double_eyelid", "skin_care", "nose", "face", "dental", "body", "anti_aging", "eye_bag"]
     },
     "cover_image": {
       "bsonType": "string",
       "description": "封面图 URL"
+    },
+    "author": {
+      "bsonType": "string",
+      "description": "作者（仅允许为编辑部/平台/匿名，禁止使用医师姓名）",
+      "defaultValue": "编辑部"
+    },
+    "read_count": {
+      "bsonType": "int",
+      "description": "阅读次数（由真实用户行为累计，禁止伪造）",
+      "defaultValue": 0
+    },
+    "like_count": {
+      "bsonType": "int",
+      "description": "点赞数（由真实用户行为累计，禁止伪造）",
+      "defaultValue": 0
     },
     "sort_order": {
       "bsonType": "int",
@@ -45,6 +64,13 @@
     "create_time": {
       "bsonType": "timestamp",
       "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "update_time": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
       "forceDefaultValue": {
         "$env": "now"
       }

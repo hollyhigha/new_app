@@ -7,8 +7,10 @@ const logsCollection = db.collection('conversion-logs')
 const OE_API_URL = 'https://analytics.oceanengine.com/api/v2/conversion'
 const OE_ACCESS_TOKEN = process.env.OE_ACCESS_TOKEN || ''
 
-const RETRY_INTERVALS = [60000, 300000, 1800000]
-const MAX_RETRY = 3
+// 重试节奏与 report-conversion 保持一致
+// 1min / 5min / 15min / 30min / 2h
+const RETRY_INTERVALS = [60 * 1000, 5 * 60 * 1000, 15 * 60 * 1000, 30 * 60 * 1000, 2 * 60 * 60 * 1000]
+const MAX_RETRY = RETRY_INTERVALS.length
 const REPORT_TTL = 7 * 24 * 60 * 60 * 1000
 
 const INTERNAL_WEBHOOK = process.env.INTERNAL_WEBHOOK_URL || ''
@@ -61,7 +63,8 @@ exports.main = async () => {
       }
 
       if (!success && newRetryCount < MAX_RETRY) {
-        updateData.next_retry_time = now + RETRY_INTERVALS[newRetryCount]
+        const idx = Math.min(newRetryCount, RETRY_INTERVALS.length - 1)
+        updateData.next_retry_time = now + RETRY_INTERVALS[idx]
       } else {
         updateData.next_retry_time = null
       }

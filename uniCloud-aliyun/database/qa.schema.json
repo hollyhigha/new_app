@@ -1,0 +1,57 @@
+{
+  "bsonType": "object",
+  "required": ["question", "answer"],
+  "permission": {
+    "read": "doc.status == 1",
+    "create": "'CREATE_QA' in auth.permission",
+    "update": "'UPDATE_QA' in auth.permission",
+    "delete": "'DELETE_QA' in auth.permission"
+  },
+  "properties": {
+    "_id": { "description": "自动生成" },
+    "seed_id": {
+      "bsonType": "string",
+      "description": "种子业务 ID（幂等导入）"
+    },
+    "question": {
+      "bsonType": "string",
+      "description": "问题",
+      "trim": "both"
+    },
+    "answer": {
+      "bsonType": "string",
+      "description": "回答"
+    },
+    "category": {
+      "bsonType": "string",
+      "description": "分类"
+    },
+    "asker_name": {
+      "bsonType": "string",
+      "description": "提问人昵称（固定为匿名网友）",
+      "defaultValue": "匿名网友"
+    },
+    "answerer_name": {
+      "bsonType": "string",
+      "description": "回答人（仅允许编辑部/平台）",
+      "defaultValue": "编辑部"
+    },
+    "view_count": {
+      "bsonType": "int",
+      "defaultValue": 0
+    },
+    "sort_order": {
+      "bsonType": "int",
+      "defaultValue": 0
+    },
+    "status": {
+      "bsonType": "int",
+      "defaultValue": 1,
+      "enum": [0, 1]
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "forceDefaultValue": { "$env": "now" }
+    }
+  }
+}
